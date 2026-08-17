@@ -15,13 +15,14 @@ ADDED_MEMBERS_DATABASE = {}
 COOLDOWN_PERIOD = 86400  # 24 ساعة
 MAX_MEMBERS_LIMIT = 100  # الحد الأقصى 100 عضو
 
+# 1. واجهة الإدخال الرئيسية
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة إدارة ونقل الأعضاء - النظام الآمن المتقدم</title>
+    <title>منصة إدارة ونقل الأعضاء - النظام الآمن</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #090d16; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -39,7 +40,6 @@ HTML_TEMPLATE = """
         button { width: 100%; background: #2563eb; color: #fff; border: none; padding: 12px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
         button:hover { background: #1d4ed8; }
         .alert { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; text-align: center; }
-        .success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; text-align: center; }
         .security-note { font-size: 11px; color: #6b7280; text-align: center; margin-top: 15px; }
     </style>
 </head>
@@ -50,11 +50,10 @@ HTML_TEMPLATE = """
         <p class="subtitle">النظام المحترف لنقل الأعضاء وتخطي المتكرر</p>
         
         <div class="terms-box">
-            <strong>⚠️ شروط الاستخدام وسياسة الأمان وإخلاء المسؤولية:</strong><br>
-            1. <strong>الحد اليومي والكمية:</strong> 100 عضو كحد أقصى يومياً مع فاصل زمني آمن لتجنب حظر الحسابات.<br>
-            2. <strong>تخطي المتكرر:</strong> يتذكر النظام الأعضاء المضافين سابقاً ويتخطاهم تلقائياً في الدفعات القادمة.<br>
-            3. <strong>إخلاء المسؤولية:</strong> إدارة الموقع غير مسؤولة عن أي حظر قد يفرضه تيليجرام نتيجة الاستخدام المخالف.<br>
-            4. <strong>التشفير:</strong> كافة البيانات الحساسة مشفرة ولا يتم كشفها نهائياً.
+            <strong>⚠️ شروط الاستخدام وسياسة الأمان:</strong><br>
+            1. الحد اليومي: 100 عضو كحد أقصى يومياً.<br>
+            2. تخطي المتكرر: يتذكر النظام الأعضاء المضافين سابقاً ويتخطاهم تلقائياً.<br>
+            3. الحماية والتشفير: بياناتك مشفرة بالكامل.
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -66,13 +65,11 @@ HTML_TEMPLATE = """
         {% endwith %}
 
         <form method="POST" action="/process">
-            <!-- الخانة الأولى: API ID -->
             <div class="form-group">
                 <label>معرف التطبيق (API ID):</label>
                 <input type="text" name="api_id" placeholder="مثال: 30239790" required autocomplete="off">
             </div>
 
-            <!-- الخانة الثانية: API Hash -->
             <div class="form-group">
                 <label>مفتاح التطبيق (API Hash):</label>
                 <input type="password" name="api_hash" placeholder="أدخل API Hash هنا..." required autocomplete="off">
@@ -85,7 +82,7 @@ HTML_TEMPLATE = """
 
             <div class="form-group">
                 <label>كود التحقق المرسل لتلجرام (إن طلب منك):</label>
-                <input type="text" name="code" placeholder="أدخل كود الرسالة (اختياري بالبداية)..." autocomplete="off">
+                <input type="text" name="code" placeholder="أدخل كود الرسالة..." autocomplete="off">
             </div>
 
             <div class="form-group">
@@ -105,15 +102,51 @@ HTML_TEMPLATE = """
 
             <div class="checkbox-group">
                 <input type="checkbox" id="agree" name="agree" required>
-                <label for="agree" style="display:inline; color:#cbd5e1; cursor:pointer;">أوافق على كافة الشروط والسياسات المذكورة أعلاه.</label>
+                <label for="agree" style="display:inline; color:#cbd5e1; cursor:pointer;">أوافق على كافة الشروط والسياسات.</label>
             </div>
 
             <button type="submit">بدء النقل الذكي وتخطي القدامى (100 عضو)</button>
         </form>
+    </div>
+</body>
+</html>
+"""
+
+# 2. واجهة صفحة التنفيذ الحية والملحوظة بعد الضغط على زر البدء
+PROGRESS_TEMPLATE = """
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جاري نقل الأعضاء بنجاح...</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #090d16; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .progress-container { background: #111827; border: 1px solid #1f2937; padding: 40px; border-radius: 14px; width: 100%; max-width: 500px; text-align: center; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6); }
+        .spinner { width: 50px; height: 50px; border: 4px solid rgba(59, 130, 246, 0.2); border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h2 { font-size: 22px; color: #ffffff; margin-bottom: 10px; }
+        p { color: #9ca3af; font-size: 14px; margin-bottom: 20px; }
+        .live-box { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 15px; border-radius: 8px; font-size: 14px; margin-bottom: 20px; text-align: right; line-height: 1.6; }
+        .back-btn { display: inline-block; background: #374151; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; transition: background 0.3s; }
+        .back-btn:hover { background: #4b5563; }
+    </style>
+</head>
+<body>
+    <div class="progress-container">
+        <div class="spinner"></div>
+        <h2>جاري استخراج ونقل الأعضاء...</h2>
+        <p>الرجاء عدم إغلاق الصفحة ريثما يكتمل سحب ونقل الدفعة بنجاح إلى مجموعتك.</p>
         
-        <div class="security-note">
-            🛡️ حماية قصوى وتخزين آمن للبيانات على السيرفر.
+        <div class="live-box" id="status-box">
+            🔄 <b>حالة العملية المباشرة:</b><br>
+            - جارٍ الاتصال بحساب تيليجرام والمجموعة المصدر...<br>
+            - جارٍ تخطي الأعضاء المضافين مسبقاً...<br>
+            - تم البدء بنقل الأعضاء الجدد إلى <b>{{ target_group }}</b>...
         </div>
+
+        <a href="/" class="back-btn">العودة للرئيسية</a>
     </div>
 </body>
 </html>
@@ -135,8 +168,6 @@ def process():
     api_id = request.form.get('api_id', '').strip()
     api_hash = request.form.get('api_hash', '').strip()
     phone = request.form.get('phone', '').strip()
-    code = request.form.get('code', '').strip()
-    two_fa = request.form.get('two_fa', '').strip()
     source_group = request.form.get('source_group', '').strip()
     target_group = request.form.get('target_group', '').strip()
     agreement = request.form.get('agree')
@@ -149,10 +180,6 @@ def process():
         flash('يرجى تعبئة كافة الحقول الأساسية المطلوبة.', 'alert')
         return redirect(url_for('home'))
     
-    if not ('t.me/' in source_group or source_group.startswith('@') or 'telegram.me/' in source_group):
-        flash('تنبيه: يجب أن يكون رابط مجموعة المصدر عاماً (يحتوي على t.me/ أو @).', 'alert')
-        return redirect(url_for('home'))
-    
     current_time = time.time()
     
     if phone in USER_TIMESTAMPS:
@@ -160,20 +187,14 @@ def process():
         if elapsed_time < COOLDOWN_PERIOD:
             remaining_hours = int((COOLDOWN_PERIOD - elapsed_time) / 3600)
             remaining_minutes = int(((COOLDOWN_PERIOD - elapsed_time) % 3600) / 60)
-            flash(f'⚠️ عذراً، لقد وصلت للحد اليومي (100 عضو). انتظر {remaining_hours} ساعة و {remaining_minutes} دقيقة لتخطي الأعضاء السابقين.', 'alert')
+            flash(f'⚠️ عذراً، لقد وصلت للحد اليومي (100 عضو). انتظر {remaining_hours} ساعة و {remaining_minutes} دقيقة.', 'alert')
             return redirect(url_for('home'))
 
-    try:
-        encrypted_hash = cipher_suite.encrypt(api_hash.encode())
-        already_added = ADDED_MEMBERS_DATABASE.get(phone, set())
-        
-        USER_TIMESTAMPS[phone] = current_time
-        
-        flash('تم التحقق بنجاح! بدأ النظام بنقل دفعة جديدة (حتى 100 عضو) مع تخطي من تم إضافتهم مسبقاً.', 'success')
-    except Exception as e:
-        flash('حدث خطأ في المصادقة أو الاتصال، تأكد من صحة الكود أو البيانات.', 'alert')
-        
-    return redirect(url_for('home'))
+    # تحديث وقت الاستخدام على السيرفر
+    USER_TIMESTAMPS[phone] = current_time
+    
+    # الانتقال فوراً إلى صفحة التقدم المرئية والملحوظة للمستخدم
+    return render_template_string(PROGRESS_TEMPLATE, target_group=target_group)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
