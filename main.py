@@ -1,7 +1,12 @@
 import os
 import time
+import asyncio
+from threading import Thread
 from flask import Flask, render_template_string, request, redirect, url_for, flash
 from cryptography.fernet import Fernet
+from telethon import TelegramClient
+from telethon.errors import SessionPasswordNeededError, PeerFloodError, UserPrivacyRestrictedError
+from telethon.tl.functions.channels import InviteToChannelRequest
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
@@ -9,13 +14,108 @@ app.secret_key = os.urandom(24)
 ENCRYPTION_KEY = Fernet.generate_key() if 'ENCRYPTION_KEY' not in os.environ else os.environ.get('ENCRYPTION_KEY').encode()
 cipher_suite = Fernet(ENCRYPTION_KEY if isinstance(ENCRYPTION_KEY, bytes) else ENCRYPTION_KEY.encode())
 
+# قواعد بيانات مؤقتة
 USER_TIMESTAMPS = {}
 ADDED_MEMBERS_DATABASE = {}
 
 COOLDOWN_PERIOD = 86400  # 24 ساعة
 MAX_MEMBERS_LIMIT = 100  # الحد الأقصى 100 عضو
 
-# 1. واجهة الإدخال الرئيسية
+# [================= دالة العمليات الخلفية (Telethon) =================]
+def background_telegram_task(api_id, api_hash, phone, code, two_fa, source_group, target_group):
+    """
+    هذه الدالة تعمل في الخلفية دون أن توقف الموقع. 
+    تتصل بتيليجرام، تسجل الدخول، وتسحب الأعضاء وتضيفهم.
+    """
+    # إنشاء بيئة عمل غير متزامنة (Asyncio Loop) خاصة بهذا الخيط
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    # تسمية ملف الجلسة برقم الهاتف للحفاظ على تسجيل الدخول
+    session_name = f"session_{phone.replace('+', '')}"
+    client = TelegramClient(session_name, int(api_id), api_hash, loop=loop)
+
+    async def run_logic():
+        await client.connect()
+        
+        # 1. نظام المصادقة وتسجيل الدخول
+        if not await client.is_user_authorized():
+            if not code:
+                # إذا لم يضع المستخدم الكود، نأمر تيليجرام بإرسال الكود لهاتفه
+                try:
+                    await client.send_code_request(phone)
+                    print(f"تم إرسال كود التحقق إلى الرقم {phone}. يرجى إدخاله في الموقع.")
+                except Exception as e:
+                    print(f"خطأ في إرسال الكود: {e}")
+                await client.disconnect()
+                return
+            else:
+                # إذا أدخل الكود، نقوم بتسجيل الدخول
+                try:
+                    await client.sign_in(phone, code)
+                except SessionPasswordNeededError:
+                    if two_fa:
+                        await client.sign_in(password=two_fa)
+                    else:
+                        print("هذا الحساب محمي بكلمة مرور 2FA. الرجاء إدخالها.")
+                        await client.disconnect()
+                        return
+                except Exception as e:
+                    print(f"خطأ في تسجيل الدخول: {e}")
+                    await client.disconnect()
+                    return
+
+        # 2. نظام السحب والإضافة
+        try:
+            source_entity = await client.get_entity(source_group)
+            target_entity = await client.get_entity(target_group)
+            
+            # جلب آخر 100 عضو من المجموعة المصدر
+            participants = await client.get_participants(source_entity, limit=100)
+            
+            # استدعاء سجل الأعضاء المضافين سابقاً لهذا الرقم
+            already_added = ADDED_MEMBERS_DATABASE.get(phone, set())
+            
+            added_count = 0
+            for user in participants:
+                if added_count >= MAX_MEMBERS_LIMIT:
+                    break
+                
+                # تخطي البوتات، الحسابات المحذوفة، ومن تمت إضافته سابقاً
+                if user.bot or user.deleted or user.id in already_added:
+                    continue
+                
+                try:
+                    # أمر الإضافة الفعلي
+                    await client(InviteToChannelRequest(target_entity, [user]))
+                    already_added.add(user.id)
+                    ADDED_MEMBERS_DATABASE[phone] = already_added
+                    added_count += 1
+                    
+                    print(f"تمت إضافة العضو بنجاح: {user.username or user.id}")
+                    
+                    # ⚠️ فاصل زمني هام جداً (15 ثانية) بين كل عضو لتجنب الحظر
+                    await asyncio.sleep(15) 
+                    
+                except PeerFloodError:
+                    print("تنبيه أمان: تم تفعيل حظر Flood من تيليجرام! تم إيقاف العملية لحماية حسابك.")
+                    break
+                except UserPrivacyRestrictedError:
+                    print(f"تخطي: العضو {user.id} يمنع إضافته للمجموعات بسبب الخصوصية.")
+                except Exception as e:
+                    print(f"خطأ في إضافة العضو {user.id}: {e}")
+                    
+        except Exception as e:
+            print(f"خطأ في عملية النقل الرئيسية: {e}")
+        finally:
+            await client.disconnect()
+
+    # تشغيل الدالة
+    loop.run_until_complete(run_logic())
+    loop.close()
+# [====================================================================]
+
+
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -40,6 +140,7 @@ HTML_TEMPLATE = """
         button { width: 100%; background: #2563eb; color: #fff; border: none; padding: 12px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: background 0.3s; }
         button:hover { background: #1d4ed8; }
         .alert { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; text-align: center; }
+        .success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; padding: 10px; border-radius: 6px; font-size: 13px; margin-bottom: 20px; text-align: center; }
         .security-note { font-size: 11px; color: #6b7280; text-align: center; margin-top: 15px; }
     </style>
 </head>
@@ -53,7 +154,7 @@ HTML_TEMPLATE = """
             <strong>⚠️ شروط الاستخدام وسياسة الأمان:</strong><br>
             1. الحد اليومي: 100 عضو كحد أقصى يومياً.<br>
             2. تخطي المتكرر: يتذكر النظام الأعضاء المضافين سابقاً ويتخطاهم تلقائياً.<br>
-            3. الحماية والتشفير: بياناتك مشفرة بالكامل.
+            3. الحماية والتشفير: يتم إرسال طلبات الإضافة بفاصل 15 ثانية لتجنب حظر حسابك.
         </div>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -112,7 +213,6 @@ HTML_TEMPLATE = """
 </html>
 """
 
-# 2. واجهة صفحة التنفيذ الحية والملحوظة بعد الضغط على زر البدء
 PROGRESS_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -137,13 +237,12 @@ PROGRESS_TEMPLATE = """
     <div class="progress-container">
         <div class="spinner"></div>
         <h2>جاري استخراج ونقل الأعضاء...</h2>
-        <p>الرجاء عدم إغلاق الصفحة ريثما يكتمل سحب ونقل الدفعة بنجاح إلى مجموعتك.</p>
+        <p>يتم الآن نقل الأعضاء واحداً تلو الآخر في الخلفية مع فاصل زمني (15 ثانية) لحماية حسابك.</p>
         
         <div class="live-box" id="status-box">
             🔄 <b>حالة العملية المباشرة:</b><br>
-            - جارٍ الاتصال بحساب تيليجرام والمجموعة المصدر...<br>
-            - جارٍ تخطي الأعضاء المضافين مسبقاً...<br>
-            - تم البدء بنقل الأعضاء الجدد إلى <b>{{ target_group }}</b>...
+            - جاري الاتصال بحساب تيليجرام...<br>
+            - يتم نقل الأعضاء الجدد إلى <b>{{ target_group }}</b>...
         </div>
 
         <a href="/" class="back-btn">العودة للرئيسية</a>
@@ -168,6 +267,8 @@ def process():
     api_id = request.form.get('api_id', '').strip()
     api_hash = request.form.get('api_hash', '').strip()
     phone = request.form.get('phone', '').strip()
+    code = request.form.get('code', '').strip()
+    two_fa = request.form.get('two_fa', '').strip()
     source_group = request.form.get('source_group', '').strip()
     target_group = request.form.get('target_group', '').strip()
     agreement = request.form.get('agree')
@@ -182,18 +283,27 @@ def process():
     
     current_time = time.time()
     
-    if phone in USER_TIMESTAMPS:
+    # فحص الحد اليومي إذا تم الإرسال بوجود كود التحقق
+    if phone in USER_TIMESTAMPS and code:
         elapsed_time = current_time - USER_TIMESTAMPS[phone]
         if elapsed_time < COOLDOWN_PERIOD:
             remaining_hours = int((COOLDOWN_PERIOD - elapsed_time) / 3600)
             remaining_minutes = int(((COOLDOWN_PERIOD - elapsed_time) % 3600) / 60)
-            flash(f'⚠️ عذراً، لقد وصلت للحد اليومي (100 عضو). انتظر {remaining_hours} ساعة و {remaining_minutes} دقيقة.', 'alert')
+            flash(f'⚠️ عذراً، لقد وصلت للحد اليومي (100 عضو). انتظر {remaining_hours} ساعة.', 'alert')
             return redirect(url_for('home'))
 
-    # تحديث وقت الاستخدام على السيرفر
-    USER_TIMESTAMPS[phone] = current_time
+    if code:
+        # إذا تم إدخال الكود، نبدأ العملية ونحسب الحد اليومي
+        USER_TIMESTAMPS[phone] = current_time
     
-    # الانتقال فوراً إلى صفحة التقدم المرئية والملحوظة للمستخدم
+    # 🚀 تشغيل عملية تيليجرام الفعلية في مسار خلفي مستقل 🚀
+    thread = Thread(target=background_telegram_task, args=(api_id, api_hash, phone, code, two_fa, source_group, target_group))
+    thread.start()
+    
+    if not code:
+        flash('✅ تم الاتصال بحسابك بنجاح. لقد أرسل لك تيليجرام كود التحقق لتسجيل الدخول، يرجى إدخاله الآن في الخانة المخصصة ثم اضغط بدء مرة أخرى.', 'success')
+        return redirect(url_for('home'))
+    
     return render_template_string(PROGRESS_TEMPLATE, target_group=target_group)
 
 if __name__ == '__main__':
