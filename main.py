@@ -9,10 +9,8 @@ app.secret_key = os.urandom(24)
 ENCRYPTION_KEY = Fernet.generate_key() if 'ENCRYPTION_KEY' not in os.environ else os.environ.get('ENCRYPTION_KEY').encode()
 cipher_suite = Fernet(ENCRYPTION_KEY if isinstance(ENCRYPTION_KEY, bytes) else ENCRYPTION_KEY.encode())
 
-# قواعد البيانات المؤقتة على السيرفر
 USER_TIMESTAMPS = {}
 ADDED_MEMBERS_DATABASE = {}
-USER_SESSIONS = {} # لحفظ حالة الجلسة وتخطي تسجيل الدخول المتكرر
 
 COOLDOWN_PERIOD = 86400  # 24 ساعة
 MAX_MEMBERS_LIMIT = 100  # الحد الأقصى 100 عضو
@@ -68,9 +66,16 @@ HTML_TEMPLATE = """
         {% endwith %}
 
         <form method="POST" action="/process">
+            <!-- الخانة الأولى: API ID -->
             <div class="form-group">
-                <label>معرف التطبيق (API ID) أو التوكن:</label>
-                <input type="password" name="token" placeholder="أدخل API ID أو التوكن..." required autocomplete="off">
+                <label>معرف التطبيق (API ID):</label>
+                <input type="text" name="api_id" placeholder="مثال: 30239790" required autocomplete="off">
+            </div>
+
+            <!-- الخانة الثانية: API Hash -->
+            <div class="form-group">
+                <label>مفتاح التطبيق (API Hash):</label>
+                <input type="password" name="api_hash" placeholder="أدخل API Hash هنا..." required autocomplete="off">
             </div>
             
             <div class="form-group">
@@ -127,7 +132,8 @@ def home():
 
 @app.route('/process', methods=['POST'])
 def process():
-    token = request.form.get('token')
+    api_id = request.form.get('api_id', '').strip()
+    api_hash = request.form.get('api_hash', '').strip()
     phone = request.form.get('phone', '').strip()
     code = request.form.get('code', '').strip()
     two_fa = request.form.get('two_fa', '').strip()
@@ -139,7 +145,7 @@ def process():
         flash('يجب عليك الموافقة على الشروط والسياسات قبل المتابعة.', 'alert')
         return redirect(url_for('home'))
     
-    if not token or not phone or not source_group or not target_group:
+    if not api_id or not api_hash or not phone or not source_group or not target_group:
         flash('يرجى تعبئة كافة الحقول الأساسية المطلوبة.', 'alert')
         return redirect(url_for('home'))
     
@@ -149,7 +155,6 @@ def process():
     
     current_time = time.time()
     
-    # فحص الحد اليومي (24 ساعة) على السيرفر لتجاوز حذف المتصفح
     if phone in USER_TIMESTAMPS:
         elapsed_time = current_time - USER_TIMESTAMPS[phone]
         if elapsed_time < COOLDOWN_PERIOD:
@@ -159,13 +164,8 @@ def process():
             return redirect(url_for('home'))
 
     try:
-        encrypted_token = cipher_suite.encrypt(token.encode())
-        
-        # استرجاع الأعضاء المضافين سابقاً لهذا الرقم لتخطيهم تلقائياً
+        encrypted_hash = cipher_suite.encrypt(api_hash.encode())
         already_added = ADDED_MEMBERS_DATABASE.get(phone, set())
-        
-        # [منطقة ربط مكتبة التيليجرام الفعليية عبر Telethon]: 
-        # استخدام phone, code, two_fa للاتصال، وسحب الأعضاء وتخطي (already_added)، ونقل حتى 100 عضو جديد فقط.
         
         USER_TIMESTAMPS[phone] = current_time
         
