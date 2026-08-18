@@ -15,9 +15,9 @@ USER_TIMESTAMPS = {}
 ADDED_MEMBERS_DATABASE = {}
 LIVE_LOGS = {} 
 
-COOLDOWN_PERIOD = 86400  # 24 ساعة
-MAX_MEMBERS_LIMIT = 100  
-# تم إزالة التأخير الزمني كلياً للعمل بأقصى سرعة ممكنة (0 ثانية)
+COOLDOWN_PERIOD = 86400  # 24 ساعة للحد اليومي
+MAX_MEMBERS_LIMIT = 100  # الحد الأقصى للإضافة
+BATCH_SIZE = 30          # السلاح السري: إضافة 30 عضو في الطلب الواحد!
 
 def run_async(coro):
     loop = asyncio.new_event_loop()
@@ -66,7 +66,7 @@ async def step2_verify_code(api_id, api_hash, phone, code, phone_code_hash, two_
     finally:
         await client.disconnect()
 
-# [============== دالة العمل في الخلفية (بسرعة جنونية) ==============]
+# [============== دالة العمل في الخلفية (نظام الدفعات 30 عضو) ==============]
 def background_telegram_task(api_id, api_hash, phone, source_group, target_group):
     LIVE_LOGS[phone] = ['🚀 جاري الاتصال الآمن بسيرفرات تيليجرام...']
     
@@ -75,40 +75,54 @@ def background_telegram_task(api_id, api_hash, phone, source_group, target_group
         client = TelegramClient(session_name, int(api_id), api_hash)
         await client.connect()
         try:
-            LIVE_LOGS[phone].append('✅ تم الاتصال. جاري سحب الأعضاء وبدء الإضافة الجنونية الحظية...')
+            LIVE_LOGS[phone].append('✅ تم الاتصال. جاري فلترة الأعضاء وتجهيز الدفعات (30 عضو لكل دفعة)...')
             source_entity = await client.get_entity(source_group)
             target_entity = await client.get_entity(target_group)
             
-            participants = await client.get_participants(source_entity, limit=100)
+            # جلب الأعضاء من المصدر
+            participants = await client.get_participants(source_entity, limit=200)
             already_added = ADDED_MEMBERS_DATABASE.get(phone, set())
             
-            added_count = 0
+            # تجميع الأعضاء الصالحين للإضافة في قائمة
+            valid_users = []
             for user in participants:
-                if added_count >= MAX_MEMBERS_LIMIT:
-                    LIVE_LOGS[phone].append('🛑 اكتملت المهمة: تم الوصول للحد الأقصى (100 عضو).')
+                if not user.bot and not user.deleted and user.id not in already_added:
+                    valid_users.append(user)
+                if len(valid_users) >= MAX_MEMBERS_LIMIT:
                     break
+
+            if not valid_users:
+                LIVE_LOGS[phone].append('⚠️ لم يتم العثور على أعضاء جدد لنسخهم، أو تم نسخهم جميعاً مسبقاً.')
+                return
+
+            # نظام الضربات (Batches): إرسال 30 عضو في الطلب الواحد
+            for i in range(0, len(valid_users), BATCH_SIZE):
+                chunk = valid_users[i:i + BATCH_SIZE]
+                chunk_names = [u.username or u.first_name for u in chunk]
                 
-                if user.bot or user.deleted or user.id in already_added:
-                    continue
-                
-                name = user.username if user.username else user.first_name
                 try:
-                    await client(InviteToChannelRequest(target_entity, [user]))
-                    already_added.add(user.id)
+                    LIVE_LOGS[phone].append(f'🔥 جاري إرسال دفعة صاروخية تحتوي على {len(chunk)} أعضاء دفعة واحدة...')
+                    
+                    # طلب واحد يضيف 30 شخص!
+                    await client(InviteToChannelRequest(target_entity, chunk))
+                    
+                    # تسجيل الأعضاء كـ مضافين
+                    for u in chunk:
+                        already_added.add(u.id)
                     ADDED_MEMBERS_DATABASE[phone] = already_added
-                    added_count += 1
                     
-                    LIVE_LOGS[phone].append(f'<span style="color:#0f0;">⚡ تمت الإضافة الفورية: @{name}</span>')
+                    LIVE_LOGS[phone].append(f'<span style="color:#0f0;">⚡ تمت إضافة {len(chunk)} أعضاء بنجاح في ثانية واحدة!</span>')
                     
-                    # ⚠️ تم إزالة الـ (Sleep) ليقوم النظام بالإضافة في أجزاء من الثانية
+                    # انتظار بسيط بين الدفعة (30 عضو) والدفعة التي تليها (30 عضو)
+                    await asyncio.sleep(5)
                     
                 except PeerFloodError:
-                    LIVE_LOGS[phone].append('<span style="color:#f00;">⚠️ ضربة أمنية: تيليجرام حظر الحساب بسبب السرعة الجنونية (Flood).</span>')
+                    LIVE_LOGS[phone].append('<span style="color:#f00;">⚠️ ضربة أمنية: تيليجرام حظر الحساب مؤقتاً (Flood).</span>')
                     break
                 except UserPrivacyRestrictedError:
-                    LIVE_LOGS[phone].append(f'<span style="color:#aa0;">⏭️ تخطي الخصوصية: @{name}</span>')
-                except Exception:
-                    pass 
+                    LIVE_LOGS[phone].append('<span style="color:#aa0;">⏭️ بعض الأعضاء في هذه الدفعة لديهم خصوصية تمنع إضافتهم. تم تخطيهم.</span>')
+                except Exception as e:
+                    LIVE_LOGS[phone].append(f'<span style="color:#f00;">⚠️ خطأ في الدفعة: {str(e)}</span>')
                     
             LIVE_LOGS[phone].append('🎉 توقفت العملية هنا. تحقق من مجموعتك.')
         except Exception as e:
@@ -146,7 +160,7 @@ MAIN_TEMPLATE = """
 </head>
 <body>
     <div class="container">
-        <div class="badge">🚀 وضع السرعة القصوى (بدون تأخير)</div>
+        <div class="badge">🚀 وضع السرعة القصوى (نظام الدفعات)</div>
         <h2>إعدادات النقل</h2>
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -168,7 +182,6 @@ MAIN_TEMPLATE = """
 </html>
 """
 
-# واجهة المؤقت المباشر (عند محاولة إضافة معلومات قبل 24 ساعة)
 COOLDOWN_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -292,8 +305,8 @@ LIVE_TEMPLATE = """
     </style>
 </head>
 <body>
-    <h2>⚡ البث المباشر (وضع السرعة الجنونية) ⚡</h2>
-    <p>يتم الآن رمي الطلبات بأقصى سرعة ممكنة للسيرفر.</p>
+    <h2>⚡ البث المباشر (نظام الدفعات) ⚡</h2>
+    <p>يتم الآن إضافة 30 عضواً في كل ثانية.</p>
     
     <div class="terminal-box" id="terminal">
         <div class="log-entry">🔄 جاري تهيئة النظام...</div>
@@ -316,7 +329,7 @@ LIVE_TEMPLATE = """
                     terminal.scrollTop = terminal.scrollHeight;
                 }
             });
-        }, 500); // تحديث سريع جداً كل نصف ثانية لمواكبة السرعة
+        }, 500); 
     </script>
 </body>
 </html>
@@ -338,12 +351,10 @@ def submit_main():
     
     phone = session['phone']
     
-    # [تعديل هام]: التحقق من المؤقت قبل إرسال كود تيليجرام
     if phone in USER_TIMESTAMPS:
         elapsed_time = time.time() - USER_TIMESTAMPS[phone]
         if elapsed_time < COOLDOWN_PERIOD:
             remaining = COOLDOWN_PERIOD - elapsed_time
-            # تحويله فوراً لصفحة المؤقت
             return render_template_string(COOLDOWN_TEMPLATE, remaining_seconds=int(remaining))
 
     result = run_async(step1_send_code(session['api_id'], session['api_hash'], phone))
@@ -352,7 +363,6 @@ def submit_main():
         session['phone_code_hash'] = result["hash"]
         return render_template_string(CODE_TEMPLATE)
     elif result["status"] == "ALREADY_AUTH":
-        # تفعيل المؤقت فوراً بمجرد بدء العملية
         USER_TIMESTAMPS[phone] = time.time()
         Thread(target=background_telegram_task, args=(session['api_id'], session['api_hash'], phone, session['source_group'], session['target_group'])).start()
         return redirect(url_for('live_progress'))
@@ -375,7 +385,6 @@ def submit_code():
     status = run_async(step2_verify_code(api_id, api_hash, phone, code, phone_code_hash, two_fa))
     
     if status == "SUCCESS":
-        # تفعيل المؤقت وبدء النقل
         USER_TIMESTAMPS[phone] = time.time()
         Thread(target=background_telegram_task, args=(api_id, api_hash, phone, source, target)).start()
         return redirect(url_for('live_progress'))
