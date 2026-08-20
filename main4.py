@@ -1,11 +1,11 @@
 import os
 import requests
-from flask import Flask, request, jsonify, render_template_string
+from flask import Flask, request, jsonify, render_template_string, Response
 
 app = Flask(__name__)
 
 # ==========================================
-# 1. FRONTEND (UI & UX المحسّن)
+# 1. FRONTEND (UI & UX)
 # ==========================================
 HTML_CODE = """
 <!DOCTYPE html>
@@ -59,12 +59,10 @@ HTML_CODE = """
         .btn-wm { background: #3b82f6; } .btn-wm:hover { background: #2563eb; }
         .btn-mp3 { background: #f59e0b; } .btn-mp3:hover { background: #d97706; }
         
-        /* Loader & Error Alerts */
         .loader { display: none; margin: 2rem auto; border: 4px solid rgba(255,255,255,0.2); border-top: 4px solid #ffffff; border-radius: 50%; width: 45px; height: 45px; animation: spin 0.8s linear infinite; }
         .error-banner { max-width: 750px; margin: 1.5rem auto 0; padding: 1rem; background: #ef444420; border: 1px solid #ef4444; color: #f87171; border-radius: 10px; display: none; text-align: center; font-weight: 600; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Grid Section */
         .features { max-width: 1000px; margin: 4rem auto; padding: 0 1rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
         .feature-card { background: var(--bg-surface); padding: 2rem; border-radius: 14px; border: 1px solid var(--border-color); text-align: center; }
         .feature-card i { font-size: 2.2rem; color: var(--accent-purple); margin-bottom: 1rem; }
@@ -106,15 +104,15 @@ HTML_CODE = """
                 </div>
             </div>
             <div class="result-actions">
-                <a href="#" class="btn-act btn-nowm" id="btnNoWm" target="_blank" download><i class="fa-solid fa-download"></i> No Watermark</a>
-                <a href="#" class="btn-act btn-wm" id="btnWm" target="_blank" download><i class="fa-solid fa-film"></i> With Watermark</a>
-                <a href="#" class="btn-act btn-mp3" id="btnMp3" target="_blank" download><i class="fa-solid fa-music"></i> Audio MP3</a>
+                <a href="#" class="btn-act btn-nowm" id="btnNoWm"><i class="fa-solid fa-download"></i> No Watermark</a>
+                <a href="#" class="btn-act btn-wm" id="btnWm"><i class="fa-solid fa-film"></i> With Watermark</a>
+                <a href="#" class="btn-act btn-mp3" id="btnMp3"><i class="fa-solid fa-music"></i> Audio MP3</a>
             </div>
         </div>
     </section>
 
     <section class="features">
-        <div class="feature-card"><i class="fa-solid fa-bolt"></i><h3>Ultra Fast</h3><p>Instant processing with multi-node API routing.</p></div>
+        <div class="feature-card"><i class="fa-solid fa-bolt"></i><h3>Ultra Fast</h3><p>Instant direct device download system.</p></div>
         <div class="feature-card"><i class="fa-solid fa-shield-halved"></i><h3>No Watermark</h3><p>Clean HD video downloads without logos or branding.</p></div>
         <div class="feature-card"><i class="fa-solid fa-mobile-screen"></i><h3>All Devices</h3><p>Works smoothly on iOS, Android, PC, and tablets.</p></div>
     </section>
@@ -124,7 +122,6 @@ HTML_CODE = """
     </footer>
 
     <script>
-        // Theme Switcher
         document.getElementById('themeBtn').addEventListener('click', () => {
             const current = document.documentElement.getAttribute('data-theme');
             const target = current === 'dark' ? 'light' : 'dark';
@@ -132,7 +129,6 @@ HTML_CODE = """
             document.getElementById('themeBtn').innerHTML = target === 'dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
         });
 
-        // Paste Link
         document.getElementById('pasteBtn').addEventListener('click', async () => {
             try {
                 const text = await navigator.clipboard.readText();
@@ -140,7 +136,6 @@ HTML_CODE = """
             } catch(e) { alert("Clipboard permission required."); }
         });
 
-        // Process Download Request
         document.getElementById('downloadBtn').addEventListener('click', async () => {
             const urlInput = document.getElementById('videoUrl').value.trim();
             const loader = document.getElementById('loader');
@@ -172,9 +167,10 @@ HTML_CODE = """
                     document.getElementById('resAuthor').innerText = '@' + (data.author || 'tiktok_user');
                     document.getElementById('resTitle').innerText = data.title || 'TikTok Video';
                     
-                    document.getElementById('btnNoWm').href = data.video_nowm;
-                    document.getElementById('btnWm').href = data.video_wm || data.video_nowm;
-                    document.getElementById('btnMp3').href = data.music;
+                    // توجيه التحميل عبر مسار الـ Download Stream المباشر في Python
+                    document.getElementById('btnNoWm').href = `/download_file?url=${encodeURIComponent(data.video_nowm)}&type=mp4`;
+                    document.getElementById('btnWm').href = `/download_file?url=${encodeURIComponent(data.video_wm || data.video_nowm)}&type=mp4`;
+                    document.getElementById('btnMp3').href = `/download_file?url=${encodeURIComponent(data.music)}&type=mp3`;
                     
                     resultCard.style.display = 'block';
                 } else {
@@ -193,16 +189,15 @@ HTML_CODE = """
 """
 
 # ==========================================
-# 2. BACKEND (Multi-API System with Fallback)
+# 2. BACKEND (Python Streaming & Forced Download)
 # ==========================================
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    'Accept': 'application/json, text/plain, */*'
+    'Accept': '*/*'
 }
 
 def resolve_url(url):
-    """فك الروابط المختصرة vm.tiktok.com إلى الرابط الأصلي"""
     try:
         if "tiktok.com" in url:
             res = requests.head(url, headers=HEADERS, allow_redirects=True, timeout=5)
@@ -212,7 +207,6 @@ def resolve_url(url):
     return url
 
 def fetch_from_tikwm(url):
-    """المحرك الأول: TikWM API"""
     try:
         api_url = f"https://www.tikwm.com/api/?url={url}"
         res = requests.get(api_url, headers=HEADERS, timeout=8)
@@ -232,31 +226,6 @@ def fetch_from_tikwm(url):
         pass
     return None
 
-def fetch_from_lovetik(url):
-    """المحرك الثاني (احتياطي): LoveTik API"""
-    try:
-        api_url = "https://lovetik.com/api/ajax/search"
-        payload = {'query': url}
-        res = requests.post(api_url, data=payload, headers=HEADERS, timeout=8)
-        if res.status_code == 200:
-            json_data = res.json()
-            if json_data.get('status') == 'ok':
-                links = json_data.get('links', [])
-                nowm = links[0].get('a') if len(links) > 0 else None
-                wm = links[1].get('a') if len(links) > 1 else nowm
-                mp3 = json_data.get('links', [])[-1].get('a')
-                return {
-                    'title': json_data.get('desc', 'TikTok Video'),
-                    'author': json_data.get('author', 'user'),
-                    'cover': json_data.get('cover'),
-                    'video_nowm': nowm,
-                    'video_wm': wm,
-                    'music': mp3
-                }
-    except Exception:
-        pass
-    return None
-
 @app.route('/')
 def home():
     return render_template_string(HTML_CODE)
@@ -269,17 +238,9 @@ def api_download():
     if not raw_url:
         return jsonify({'status': 'error', 'message': 'Please provide a URL'}), 400
 
-    # 1. فك الرابط إذا كان قصيراً
     clean_url = resolve_url(raw_url)
-
-    # 2. المحاولة في السيرفر الأول TikWM
     result = fetch_from_tikwm(clean_url)
 
-    # 3. إذا فشل السيرفر الأول، الانتقال تلقائياً للسيرفر الاحتياطي LoveTik
-    if not result:
-        result = fetch_from_lovetik(clean_url)
-
-    # 4. النتيجة النهائية
     if result and result.get('video_nowm'):
         return jsonify({
             'status': 'success',
@@ -293,8 +254,37 @@ def api_download():
     else:
         return jsonify({
             'status': 'error',
-            'message': 'Failed to process this video. The video might be private or blocked.'
+            'message': 'Failed to process this video. Check link or try again.'
         }), 400
+
+# === مسار التحميل المباشر للجهاز (Direct Force Download Proxy) ===
+@app.route('/download_file')
+def download_file():
+    file_url = request.args.get('url')
+    file_type = request.args.get('type', 'mp4')
+
+    if not file_url:
+        return "Invalid File URL", 400
+
+    try:
+        # جلب البيانات من تيك توك عبر السيرفر لتجاوز منع الحفظ
+        req = requests.get(file_url, headers=HEADERS, stream=True, timeout=15)
+        
+        ext = "mp3" if file_type == "mp3" else "mp4"
+        mime_type = "audio/mpeg" if file_type == "mp3" else "video/mp4"
+        filename = f"aetechup_tiktok.{ext}"
+
+        # إرجاع الملف للعميل كملف قابل للتنزيل المباشر على الجهاز
+        return Response(
+            req.iter_content(chunk_size=1024 * 1024),
+            content_type=mime_type,
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}",
+                "Content-Length": req.headers.get('Content-Length', '')
+            }
+        )
+    except Exception as e:
+        return f"Download Failed: {str(e)}", 500
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
