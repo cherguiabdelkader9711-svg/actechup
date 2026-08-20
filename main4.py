@@ -1,356 +1,350 @@
 import os
-import glob
-from flask import Flask, render_template_string, request, send_file
-import yt_dlp
+from flask import Flask, render_template_string, request, session, redirect, url_for
 
 app = Flask(__name__)
+# مفتاح سري لتشفير الجلسات وحفظ لغة المستخدم
+app.secret_key = os.urandom(24)
 
-# واجهة مستخدم احترافية مطابقة لهيكل SSSTik مع تصميم عصري وألوان خاصة
-HTML_TEMPLATE = """
+# ==========================================
+# 🌐 قاموس الترجمات (يسهل تعديله من هنا مباشرة)
+# ==========================================
+TRANSLATIONS = {
+    'en': {
+        'lang_name': 'English',
+        'title': 'AekDownloader | Universal Tool',
+        'nav_home': 'Home',
+        'nav_contact': 'Contact Us',
+        'nav_privacy': 'Privacy Policy',
+        'nav_terms': 'Terms of Use',
+        'hero_title': 'Universal Media Downloader',
+        'hero_desc': 'Download your favorite content safely and securely from any platform.',
+        'placeholder': 'Paste your link here...',
+        'download': 'Download Now',
+        'download_alert': 'Note: Backend download logic has been removed as per template settings.',
+        'contact_name': 'Your Full Name',
+        'contact_email': 'Your Email Address',
+        'contact_msg': 'How can we help you?',
+        'contact_send': 'Send Message',
+        'privacy_text': 'We prioritize your privacy and security. We do not store, track, or share your personal data or download history. All operations are processed in real-time, and any links provided are immediately discarded from our servers after the operation is complete. By using our site, you consent to our basic data handling practices aimed solely at providing you with the best user experience.',
+        'terms_text': 'By accessing this website, you agree to be bound by these Terms of Use. Our service is provided "as is" for personal, non-commercial use only. You agree not to use this service for downloading copyrighted material without the owner\'s permission. We reserve the right to modify or terminate the service at any time without prior notice.',
+        'footer_text': '© 2026 AekDownloader. All rights reserved.'
+    },
+    'ar': {
+        'lang_name': 'العربية',
+        'title': 'أداة التحميل الشاملة | AekDownloader',
+        'nav_home': 'الرئيسية',
+        'nav_contact': 'اتصل بنا',
+        'nav_privacy': 'سياسة الخصوصية',
+        'nav_terms': 'شروط الاستخدام',
+        'hero_title': 'أداة التحميل الشاملة للوسائط',
+        'hero_desc': 'قم بتحميل محتواك المفضل بأمان وسرعة من أي منصة.',
+        'placeholder': 'ألصق الرابط هنا...',
+        'download': 'تحميل الآن',
+        'download_alert': 'تنبيه: تمت إزالة المعالجة الخلفية للتحميل في هذا القالب كما طلبت.',
+        'contact_name': 'الاسم الكامل',
+        'contact_email': 'البريد الإلكتروني',
+        'contact_msg': 'كيف يمكننا مساعدتك؟',
+        'contact_send': 'إرسال الرسالة',
+        'privacy_text': 'نحن نولي أولوية قصوى لخصوصيتك وأمانك. نحن لا نقوم بتخزين أو تتبع أو مشاركة بياناتك الشخصية أو سجل التحميلات. تتم جميع العمليات في الوقت الفعلي، ويتم التخلص من أي روابط مدخلة من سيرفراتنا فور اكتمال العملية.',
+        'terms_text': 'بدخولك إلى هذا الموقع، فإنك توافق على الالتزام بشروط الاستخدام هذه. تُقدم خدمتنا "كما هي" للاستخدام الشخصي وغير التجاري فقط. أنت توافق على عدم استخدام هذه الخدمة لتحميل مواد محمية بحقوق الطبع والنشر دون إذن. نحتفظ بالحق في تعديل الخدمة أو إنهائها في أي وقت.',
+        'footer_text': '© 2026 AekDownloader. جميع الحقوق محفوظة.'
+    },
+    'fr': {
+        'lang_name': 'Français',
+        'title': 'AekDownloader | Outil Universel',
+        'nav_home': 'Accueil',
+        'nav_contact': 'Contactez-nous',
+        'nav_privacy': 'Confidentialité',
+        'nav_terms': 'Conditions d\'utilisation',
+        'hero_title': 'Téléchargeur de Médias Universel',
+        'hero_desc': 'Téléchargez votre contenu préféré en toute sécurité.',
+        'placeholder': 'Collez votre lien ici...',
+        'download': 'Télécharger',
+        'download_alert': 'Remarque : La logique de téléchargement a été supprimée.',
+        'contact_name': 'Votre Nom',
+        'contact_email': 'Votre Email',
+        'contact_msg': 'Votre Message',
+        'contact_send': 'Envoyer',
+        'privacy_text': 'Nous accordons la priorité à votre vie privée. Nous ne stockons, ne suivons ni ne partageons vos données personnelles. Tous les processus sont effectués en temps réel.',
+        'terms_text': 'Utilisez ce service de manière responsable. Ne téléchargez pas de matériel protégé par des droits d\'auteur sans autorisation.',
+        'footer_text': '© 2026 AekDownloader. Tous droits réservés.'
+    },
+    'es': {
+        'lang_name': 'Español',
+        'title': 'AekDownloader | Herramienta Universal',
+        'nav_home': 'Inicio',
+        'nav_contact': 'Contáctenos',
+        'nav_privacy': 'Privacidad',
+        'nav_terms': 'Términos de Uso',
+        'hero_title': 'Descargador de Medios Universal',
+        'hero_desc': 'Descarga tu contenido favorito de forma segura.',
+        'placeholder': 'Pega tu enlace aquí...',
+        'download': 'Descargar Ahora',
+        'download_alert': 'Nota: La lógica de descarga ha sido eliminada.',
+        'contact_name': 'Su Nombre',
+        'contact_email': 'Su Correo',
+        'contact_msg': 'Su Mensaje',
+        'contact_send': 'Enviar Mensaje',
+        'privacy_text': 'Priorizamos su privacidad. No almacenamos, rastreamos ni compartimos sus datos personales. Todo se procesa en tiempo real.',
+        'terms_text': 'Utilice este servicio con responsabilidad. No descargue materiales protegidos por derechos de autor sin permiso.',
+        'footer_text': '© 2026 AekDownloader. Todos los derechos reservados.'
+    },
+    'ru': {
+        'lang_name': 'Русский',
+        'title': 'AekDownloader | Универсальный инструмент',
+        'nav_home': 'Главная',
+        'nav_contact': 'Контакты',
+        'nav_privacy': 'Конфиденциальность',
+        'nav_terms': 'Условия',
+        'hero_title': 'Универсальный загрузчик медиа',
+        'hero_desc': 'Скачивайте любимый контент безопасно и быстро.',
+        'placeholder': 'Вставьте ссылку здесь...',
+        'download': 'Скачать',
+        'download_alert': 'Примечание: Логика загрузки была удалена.',
+        'contact_name': 'Ваше имя',
+        'contact_email': 'Ваш Email',
+        'contact_msg': 'Ваше сообщение',
+        'contact_send': 'Отправить',
+        'privacy_text': 'Мы не храним, не отслеживаем и не передаем ваши личные данные. Все операции выполняются в режиме реального времени.',
+        'terms_text': 'Используйте этот сервис ответственно. Не скачивайте материалы, защищенные авторским правом.',
+        'footer_text': '© 2026 AekDownloader. Все права защищены.'
+    },
+    'zh': {
+        'lang_name': '中文',
+        'title': 'AekDownloader | 通用工具',
+        'nav_home': '首页',
+        'nav_contact': '联系我们',
+        'nav_privacy': '隐私政策',
+        'nav_terms': '使用条款',
+        'hero_title': '通用媒体下载器',
+        'hero_desc': '安全、快速地下载您喜爱的内容。',
+        'placeholder': '在此粘贴链接...',
+        'download': '立即下载',
+        'download_alert': '注意：下载后端逻辑已被移除。',
+        'contact_name': '您的姓名',
+        'contact_email': '您的邮箱',
+        'contact_msg': '您的留言',
+        'contact_send': '发送',
+        'privacy_text': '我们重视您的隐私。我们不存储、跟踪或分享您的个人数据。所有处理均实时完成。',
+        'terms_text': '请负责任地使用此服务。未经许可，请勿下载受版权保护的材料。',
+        'footer_text': '© 2026 AekDownloader. 保留所有权利。'
+    },
+    'ja': {
+        'lang_name': '日本語',
+        'title': 'AekDownloader | ユニバーサルツール',
+        'nav_home': 'ホーム',
+        'nav_contact': 'お問い合わせ',
+        'nav_privacy': 'プライバシー',
+        'nav_terms': '利用規約',
+        'hero_title': 'ユニバーサルメディアダウンローダー',
+        'hero_desc': 'お気に入りのコンテンツを安全にダウンロード。',
+        'placeholder': 'ここにリンクを貼り付けてください...',
+        'download': 'ダウンロード',
+        'download_alert': '注：ダウンロードロジックは削除されました。',
+        'contact_name': 'お名前',
+        'contact_email': 'メールアドレス',
+        'contact_msg': 'メッセージ',
+        'contact_send': '送信',
+        'privacy_text': '当社はお客様のデータを保存、追跡、共有しません。すべての処理はリアルタイムで行われます。',
+        'terms_text': 'このサービスは責任を持って使用してください。著作権で保護された素材をダウンロードしないでください。',
+        'footer_text': '© 2026 AekDownloader. 無断複写・転載を禁じます。'
+    }
+}
+
+# دالة ذكية لجلب لغة الجلسة الحالية
+def get_t():
+    lang = session.get('lang', 'en')
+    if lang not in TRANSLATIONS:
+        lang = 'en'
+    return TRANSLATIONS[lang], lang
+
+# ==========================================
+# 🎨 القالب الأساسي (يحتوي على الهيدر والفوتر والستايل)
+# ==========================================
+BASE_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحميل فيديو تيك توك بدون علامة مائية | AekDownloader</title>
+    <title>{{ t['title'] }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background-color: #f8fafc; color: #0f172a; overflow-x: hidden; }
-        a { text-decoration: none; color: inherit; }
-        
-        /* 1. النافذة العلوية (Navbar) */
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        .logo { font-size: 24px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px; }
-        .logo span { color: #2563eb; }
-        .nav-links { display: flex; gap: 20px; font-weight: 600; color: #475569; }
-        .nav-links a:hover { color: #2563eb; }
-        .install-btn { background: #2563eb; color: #fff; padding: 8px 20px; border-radius: 8px; font-weight: 600; transition: transform 0.3s, background 0.3s; }
-        .install-btn:hover { background: #1d4ed8; transform: translateY(-2px); }
-
-        /* 2. القسم الرئيسي (Hero Section) مع تأثيرات الماوس */
-        .hero {
-            background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
-            padding: 80px 20px;
-            text-align: center;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --box-bg: #ffffff;
         }
-        .hero h1 { font-size: 40px; font-weight: 800; margin-bottom: 30px; z-index: 2; position: relative; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
         
-        /* شريط البحث الاحترافي */
-        .search-box {
-            max-width: 700px;
-            margin: 0 auto;
-            background: #fff;
-            border-radius: 12px;
-            display: flex;
-            padding: 8px;
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-            position: relative;
-            z-index: 2;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .search-box:hover { transform: translateY(-3px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-        .search-box input { flex: 1; border: none; padding: 15px 20px; font-size: 16px; outline: none; border-radius: 10px; background: transparent; color: #333; }
-        .paste-btn { background: #f1f5f9; color: #475569; border: none; padding: 10px 20px; margin: 5px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
-        .paste-btn:hover { background: #e2e8f0; color: #0f172a; }
-        .download-btn { background: #2563eb; color: #fff; border: none; padding: 15px 30px; font-size: 18px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.3s; }
-        .download-btn:hover { background: #1e40af; }
+        /* شريط التنقل العلوي */
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: var(--box-bg); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { font-size: 24px; font-weight: 800; color: #1e293b; text-decoration: none; }
+        .logo span { color: var(--primary); }
+        .nav-links { display: flex; gap: 25px; align-items: center; }
+        .nav-links a { text-decoration: none; font-weight: 600; color: #475569; transition: 0.3s; }
+        .nav-links a:hover { color: var(--primary); }
+        
+        /* القائمة المنسدلة للغات (لوجو احترافي) */
+        .lang-menu { position: relative; display: inline-block; }
+        .lang-btn { background: #f1f5f9; border: none; padding: 10px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; color: #1e293b; transition: 0.3s; }
+        .lang-btn:hover { background: #e2e8f0; }
+        .lang-dropdown { display: none; position: absolute; top: 110%; right: 0; background: #fff; min-width: 150px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; z-index: 100; }
+        [dir="rtl"] .lang-dropdown { right: auto; left: 0; } /* ضبط الاتجاه للعربية */
+        .lang-menu:hover .lang-dropdown { display: block; }
+        .lang-dropdown a { display: block; padding: 12px 20px; color: #334155; text-decoration: none; border-bottom: 1px solid #f1f5f9; transition: 0.3s; font-weight: 600; }
+        .lang-dropdown a:hover { background: var(--primary); color: #fff; }
+        
+        /* المحتوى المتغير */
+        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 60px 20px; }
+        
+        /* تصميم الصفحات الداخلية (اتصل بنا، الخصوصية) */
+        .page-box { background: var(--box-bg); padding: 40px; border-radius: 16px; width: 100%; max-width: 700px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); line-height: 1.8; }
+        .page-box h2 { color: var(--primary); margin-bottom: 20px; font-size: 28px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+        .page-box p { color: #475569; font-size: 16px; }
+        
+        /* تصميم النماذج (Forms) */
+        .custom-form { display: flex; flex-direction: column; gap: 15px; }
+        .custom-form input, .custom-form textarea { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 15px; outline: none; background: #f8fafc; transition: 0.3s; }
+        .custom-form input:focus, .custom-form textarea:focus { border-color: var(--primary); background: #fff; }
+        .custom-form button { background: var(--primary); color: #fff; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.3s; }
+        .custom-form button:hover { background: var(--primary-hover); }
 
-        /* خيارات التحميل (راديو) */
-        .format-options { margin-top: 25px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; position: relative; z-index: 2; }
-        .radio-label { background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 600; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.2); transition: 0.3s; }
-        .radio-label:hover { background: rgba(255,255,255,0.2); }
-        .radio-label input { accent-color: #0ea5e9; margin-left: 5px; }
-
-        /* 3. المميزات الثلاث السريعة */
-        .top-features { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; padding: 60px 20px; background: #fff; text-align: center; }
-        .feature-item h3 { font-size: 20px; color: #1e293b; margin-bottom: 10px; }
-        .feature-item p { color: #64748b; font-size: 15px; max-width: 250px; }
-
-        /* 4. قسم "كيفية التحميل" (صندوق الخطوات) */
-        .how-to-section { padding: 40px 20px; text-align: center; background: #f8fafc; }
-        .how-to-section h2 { font-size: 28px; color: #1e3a8a; margin-bottom: 30px; }
-        .steps-box { max-width: 800px; margin: 0 auto; background: #1e3a8a; color: #fff; text-align: right; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(30,58,138,0.2); transition: transform 0.3s; }
-        .steps-box:hover { transform: translateY(-5px); }
-        .steps-box h3 { font-size: 24px; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-        .step { margin-bottom: 25px; position: relative; padding-right: 40px; }
-        .step::before { content: attr(data-step); position: absolute; right: 0; top: -5px; font-size: 40px; font-weight: 900; color: rgba(255,255,255,0.1); line-height: 1; }
-        .step h4 { font-size: 18px; margin-bottom: 8px; color: #38bdf8; }
-        .step p { font-size: 15px; color: #cbd5e1; line-height: 1.6; }
-
-        /* 5. شبكة المميزات (Grid) */
-        .grid-features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; max-width: 1000px; margin: 60px auto; padding: 0 20px; text-align: center; }
-        .grid-card { padding: 30px; background: #fff; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; transition: transform 0.3s, box-shadow 0.3s; }
-        .grid-card:hover { transform: translateY(-10px); box-shadow: 0 15px 30px rgba(0,0,0,0.08); }
-        .grid-card .icon { font-size: 40px; margin-bottom: 15px; }
-        .grid-card p { color: #64748b; font-size: 15px; line-height: 1.6; }
-
-        /* 6. قسم الأسئلة الشائعة (FAQ) */
-        .faq-section { max-width: 800px; margin: 0 auto 80px auto; padding: 0 20px; }
-        .faq-section h2 { text-align: center; font-size: 28px; color: #1e3a8a; margin-bottom: 40px; }
-        details { background: #fff; margin-bottom: 15px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); overflow: hidden; border: 1px solid #e2e8f0; }
-        summary { padding: 20px; font-weight: 600; cursor: pointer; color: #1e293b; font-size: 16px; outline: none; transition: background 0.3s; }
-        summary:hover { background: #f8fafc; }
-        details p { padding: 0 20px 20px 20px; color: #64748b; line-height: 1.7; font-size: 15px; }
-
-        /* 7. الفوتر (الأسفل) */
-        footer { background: #0f172a; color: #cbd5e1; text-align: center; padding: 40px 20px; font-size: 14px; }
-        footer .footer-links { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-        footer .footer-links a:hover { color: #fff; text-decoration: underline; }
-        footer p { margin-top: 10px; color: #94a3b8; }
-
-        /* رسائل الخطأ */
-        .alert { background: #fee2e2; color: #ef4444; text-align: center; padding: 15px; font-weight: 600; }
-
-        /* التجاوب مع شاشات الهاتف */
-        @media (max-width: 768px) {
-            .nav-links { display: none; }
-            .hero h1 { font-size: 28px; }
-            .search-box { flex-direction: column; padding: 15px; gap: 10px; }
-            .paste-btn, .download-btn { width: 100%; padding: 15px; }
-            .top-features { flex-direction: column; gap: 30px; }
+        /* الفوتر */
+        footer { background: #0f172a; color: #cbd5e1; text-align: center; padding: 40px 20px; font-size: 15px; margin-top: auto; }
+        footer a { color: #cbd5e1; text-decoration: none; margin: 0 15px; font-weight: 600; transition: 0.3s; }
+        footer a:hover { color: #fff; text-decoration: underline; }
+        footer p { margin-top: 15px; color: #94a3b8; }
+        
+        /* التجاوب مع الهواتف */
+        @media (max-width: 600px) {
+            .nav-links { gap: 10px; font-size: 14px; }
+            .lang-btn span { display: none; } /* إخفاء النص وترك الأيقونة في الجوال */
         }
     </style>
 </head>
 <body>
-
-    <!-- التنبيهات -->
-    {% if error %}
-    <div class="alert">⚠️ {{ error }}</div>
-    {% endif %}
-
-    <!-- 1. النافذة العلوية -->
     <nav class="navbar">
-        <div class="logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            Aek<span>Downloader</span>
-        </div>
+        <a href="/" class="logo">Aek<span>Downloader</span></a>
+        
         <div class="nav-links">
-            <a href="#">تحميل الفيديوهات</a>
-            <a href="#">تحميل ستوريات</a>
-            <a href="#">تحميل MP3</a>
+            <a href="/">{{ t['nav_home'] }}</a>
+            <a href="/contact">{{ t['nav_contact'] }}</a>
+            
+            <!-- لوجو اللغات المتطور -->
+            <div class="lang-menu">
+                <button class="lang-btn">🌐 <span>{{ t['lang_name'] }}</span></button>
+                <div class="lang-dropdown">
+                    <a href="/set_lang/en">🇬🇧 English</a>
+                    <a href="/set_lang/ar">🇸🇦 العربية</a>
+                    <a href="/set_lang/fr">🇫🇷 Français</a>
+                    <a href="/set_lang/es">🇪🇸 Español</a>
+                    <a href="/set_lang/ru">🇷🇺 Русский</a>
+                    <a href="/set_lang/zh">🇨🇳 中文</a>
+                    <a href="/set_lang/ja">🇯🇵 日本語</a>
+                </div>
+            </div>
         </div>
-        <a href="#" class="install-btn">تثبيت التطبيق</a>
     </nav>
 
-    <!-- 2. القسم الرئيسي -->
-    <section class="hero">
-        <h1>أداة تحميل فيديوهات تيك توك</h1>
-        
-        <form method="POST" action="/download" id="downloadForm" onsubmit="handleDownloadState()">
-            <div class="search-box">
-                <input type="text" name="url" id="urlInput" placeholder="ألصق رابط الفيديو هنا..." required autocomplete="off">
-                <button type="button" class="paste-btn" onclick="pasteFromClipboard()">
-                    📋 لصق
-                </button>
-                <button type="submit" class="download-btn" id="dlBtn">تحميل</button>
-            </div>
+    <main class="main-content">
+        {{ content|safe }}
+    </main>
 
-            <div class="format-options">
-                <label class="radio-label">
-                    <input type="radio" name="format_type" value="video" checked> فيديو (بدون علامة)
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="format_type" value="mp3"> موسيقى (MP3)
-                </label>
-                <label class="radio-label">
-                    <input type="radio" name="format_type" value="story"> ستوري / صور
-                </label>
-            </div>
-        </form>
-    </section>
-
-    <!-- 3. المميزات السريعة -->
-    <section class="top-features">
-        <div class="feature-item">
-            <h3>غير محدود</h3>
-            <p>احفظ فيديوهات تيك توك بالعدد الذي تريده وبدون أي قيود يومية.</p>
-        </div>
-        <div class="feature-item">
-            <h3>بدون علامة مائية!</h3>
-            <p>حمل الفيديوهات بصيغة MP4 خالية تماماً من شعار تيك توك المزعج.</p>
-        </div>
-        <div class="feature-item">
-            <h3>MP4 و MP3</h3>
-            <p>احفظ الملفات بجودة عالية HD، أو قم بتحويلها إلى مقاطع صوتية MP3.</p>
-        </div>
-    </section>
-
-    <!-- 4. صندوق الشرح -->
-    <section class="how-to-section">
-        <h2>كيفية التحميل من تيك توك؟</h2>
-        <div class="steps-box">
-            <h3>طريقة تحميل فيديو بدون علامة مائية:</h3>
-            
-            <div class="step" data-step="1">
-                <h4>ابحث عن فيديو</h4>
-                <p>افتح تطبيق تيك توك على هاتفك. تصفح للوصول إلى الفيديو الذي ترغب في حفظه. قم بتشغيل الفيديو للتأكد منه.</p>
-            </div>
-            
-            <div class="step" data-step="2">
-                <h4>انسخ الرابط</h4>
-                <p>اضغط على زر "المشاركة" الموجود في الجانب الأيمن من الشاشة. اختر "نسخ الرابط" من القائمة.</p>
-            </div>
-            
-            <div class="step" data-step="3">
-                <h4>احفظ الفيديو</h4>
-                <p>عد إلى موقعنا، الصق الرابط المنسوخ في شريط البحث بالأعلى، واضغط على زر "تحميل" لبدء الحفظ.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- 5. شبكة المميزات -->
-    <section class="grid-features">
-        <div class="grid-card">
-            <div class="icon">🔗</div>
-            <p>أداة التحميل لدينا هي الحل الأمثل لحفظ الفيديوهات لإعادة تحريرها ونشرها!</p>
-        </div>
-        <div class="grid-card">
-            <div class="icon">🆓</div>
-            <p>حمل الفيديوهات مجاناً بالكامل وبكميات غير محدودة.</p>
-        </div>
-        <div class="grid-card">
-            <div class="icon">👤</div>
-            <p>لا يتطلب تسجيل الدخول أو إدخال اسم مستخدم. فقط الصق الرابط.</p>
-        </div>
-        <div class="grid-card">
-            <div class="icon">⚡</div>
-            <p>سرعة تحميل فائقة وبأعلى جودة متوفرة (HD).</p>
-        </div>
-        <div class="grid-card">
-            <div class="icon">🎵</div>
-            <p>يدعم تنزيل الفيديوهات والصور (كمقاطع)، بالإضافة إلى استخراج الصوتيات.</p>
-        </div>
-        <div class="grid-card">
-            <div class="icon">💻</div>
-            <p>يعمل بكفاءة على جميع المتصفحات وأنظمة التشغيل (أندرويد، آيفون، حاسوب).</p>
-        </div>
-    </section>
-
-    <!-- 6. الأسئلة الشائعة -->
-    <section class="faq-section">
-        <h2>الأسئلة الشائعة (FAQ)</h2>
-        <details>
-            <summary>هل يجب علي الدفع لاستخدام الخدمة؟</summary>
-            <p>لا، هذه الخدمة مجانية تماماً وستبقى كذلك. يمكنك تحميل أي عدد تريده من الفيديوهات بدون أي رسوم.</p>
-        </details>
-        <details>
-            <summary>أين يتم حفظ الفيديوهات بعد تحميلها؟</summary>
-            <p>بشكل افتراضي، يتم حفظ الملفات في مجلد "التنزيلات" (Downloads) على جهازك، سواء كنت تستخدم هاتفاً أو حاسوباً.</p>
-        </details>
-        <details>
-            <summary>هل يمكنني تحميل فيديوهات من حسابات خاصة؟</summary>
-            <p>للأسف لا. نظامنا يعتمد على الوصول العام للفيديوهات. إذا كان الحساب خاصاً، لا يمكننا استخراج الفيديو منه.</p>
-        </details>
-        <details>
-            <summary>هل أحتاج إلى تثبيت تطبيق أو إضافة؟</summary>
-            <p>لا تحتاج لتثبيت أي شيء. كل ما تحتاجه هو متصفح الويب الخاص بك ورابط الفيديو لتعمل الأداة بنجاح.</p>
-        </details>
-    </section>
-
-    <!-- 7. الفوتر -->
     <footer>
-        <div class="footer-links">
-            <a href="#">اتصل بنا</a>
-            <a href="#">سياسة الخصوصية</a>
-            <a href="#">شروط الاستخدام</a>
-            <a href="#">تحميل من انستقرام</a>
+        <div>
+            <a href="/privacy">{{ t['nav_privacy'] }}</a>
+            <a href="/terms">{{ t['nav_terms'] }}</a>
         </div>
-        <p>نحن غير تابعين لشركة TikTok أو ByteDance.</p>
-        <p>تم الإنشاء بواسطة فريق AekDownloader - خبراء تحميل الفيديوهات.</p>
-        <p>Copyright © 2024-2026</p>
+        <p>{{ t['footer_text'] }}</p>
     </footer>
-
-    <!-- سكربتات التفاعل (اللصق + حالة الزر) -->
-    <script>
-        // دالة اللصق من الحافظة
-        async function pasteFromClipboard() {
-            try {
-                const text = await navigator.clipboard.readText();
-                document.getElementById('urlInput').value = text;
-            } catch (err) {
-                alert('يرجى السماح للمتصفح بالوصول إلى الحافظة، أو قم باللصق يدوياً.');
-            }
-        }
-
-        // دالة تغيير حالة الزر وعودته لطبيعته بعد بدء التحميل
-        function handleDownloadState() {
-            const btn = document.getElementById('dlBtn');
-            const input = document.getElementById('urlInput');
-            
-            // تغيير شكل الزر
-            btn.innerHTML = 'جاري المعالجة... ⏳';
-            btn.style.backgroundColor = '#64748b'; // لون رمادي مؤقت
-            btn.style.pointerEvents = 'none'; // منع النقر المتكرر
-            
-            // إعادة الزر لشكله الطبيعي وتفريغ الخانة بعد 7 ثوانٍ
-            // (7 ثوانٍ وقت كافٍ ليبدأ التحميل الفعلي في المتصفح)
-            setTimeout(() => {
-                btn.innerHTML = 'تحميل مجدداً';
-                btn.style.backgroundColor = '#2563eb';
-                btn.style.pointerEvents = 'auto';
-                input.value = ''; // تفريغ الخانة لتحميل فيديو جديد
-            }, 7000);
-        }
-    </script>
 </body>
 </html>
 """
 
+# ==========================================
+# 📄 محتوى الصفحات الداخلية المستقلة
+# ==========================================
+
+# 1. الصفحة الرئيسية (البحث)
+HOME_HTML = """
+<div style="text-align: center; width: 100%; max-width: 800px; margin-top: 20px;">
+    <h1 style="font-size: 42px; color: #1e293b; margin-bottom: 15px; font-weight: 800;">{{ t['hero_title'] }}</h1>
+    <p style="color: #64748b; font-size: 18px; margin-bottom: 40px;">{{ t['hero_desc'] }}</p>
+    
+    <form style="display: flex; background: #fff; border-radius: 12px; padding: 10px; box-shadow: 0 15px 30px rgba(0,0,0,0.08); border: 1px solid #e2e8f0; max-width: 650px; margin: 0 auto;" onsubmit="event.preventDefault(); alert('{{ t['download_alert'] }}');">
+        <input type="text" placeholder="{{ t['placeholder'] }}" required style="flex: 1; border: none; padding: 15px; outline: none; font-size: 16px; background: transparent;">
+        <button type="submit" style="background: #2563eb; color: #fff; border: none; padding: 10px 30px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer;">{{ t['download'] }}</button>
+    </form>
+</div>
+"""
+
+# 2. صفحة اتصل بنا
+CONTACT_HTML = """
+<div class="page-box">
+    <h2>{{ t['nav_contact'] }}</h2>
+    <form class="custom-form" onsubmit="event.preventDefault(); alert('تم إرسال رسالتك بنجاح! / Message Sent!');">
+        <input type="text" placeholder="{{ t['contact_name'] }}" required>
+        <input type="email" placeholder="{{ t['contact_email'] }}" required>
+        <textarea rows="6" placeholder="{{ t['contact_msg'] }}" required></textarea>
+        <button type="submit">{{ t['contact_send'] }}</button>
+    </form>
+</div>
+"""
+
+# 3. صفحة سياسة الخصوصية
+PRIVACY_HTML = """
+<div class="page-box">
+    <h2>{{ t['nav_privacy'] }}</h2>
+    <p>{{ t['privacy_text'] }}</p>
+</div>
+"""
+
+# 4. صفحة شروط الاستخدام
+TERMS_HTML = """
+<div class="page-box">
+    <h2>{{ t['nav_terms'] }}</h2>
+    <p>{{ t['terms_text'] }}</p>
+</div>
+"""
+
+# ==========================================
+# 🚦 مسارات الموقع (Routes)
+# ==========================================
+
+# مسار لتغيير اللغة وحفظها في الذاكرة
+@app.route('/set_lang/<lang>')
+def set_lang(lang):
+    if lang in TRANSLATIONS:
+        session['lang'] = lang
+    return redirect(request.referrer or url_for('home'))
+
 @app.route('/')
 def home():
-    return render_template_string(HTML_TEMPLATE)
+    t, lang = get_t()
+    content = render_template_string(HOME_HTML, t=t)
+    return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=content)
 
-@app.route('/download', methods=['POST'])
-def download_video():
-    url = request.form.get('url')
-    format_type = request.form.get('format_type', 'video')
-    
-    # تنظيف السيرفر من الملفات القديمة
-    for file in glob.glob("downloaded_media*"):
-        try:
-            os.remove(file)
-        except:
-            pass
+@app.route('/contact')
+def contact():
+    t, lang = get_t()
+    content = render_template_string(CONTACT_HTML, t=t)
+    return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=content)
 
-    ydl_opts = {
-        'quiet': True,
-        'no_warnings': True,
-    }
+@app.route('/privacy')
+def privacy():
+    t, lang = get_t()
+    content = render_template_string(PRIVACY_HTML, t=t)
+    return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=content)
 
-    try:
-        if format_type == 'mp3':
-            ydl_opts.update({
-                'format': 'bestaudio/best',
-                'outtmpl': 'downloaded_media', 
-                'postprocessors': [{
-                    'key': 'FFmpegExtractAudio',
-                    'preferredcodec': 'mp3',
-                    'preferredquality': '192',
-                }],
-            })
-        else:
-            ydl_opts.update({
-                'format': 'best',
-                'outtmpl': 'downloaded_media.%(ext)s',
-            })
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-            
-        downloaded_files = glob.glob("downloaded_media*")
-        if downloaded_files:
-            final_file = downloaded_files[0]
-            dl_name = f"AekDownloader_{format_type}{os.path.splitext(final_file)[1]}"
-            return send_file(final_file, as_attachment=True, download_name=dl_name)
-        else:
-            raise Exception("لم يتم العثور على الملف.")
-            
-    except Exception as e:
-        return render_template_string(HTML_TEMPLATE, error="❌ عذراً، تأكد من صحة الرابط أو أن الفيديو غير متاح للعامة.")
+@app.route('/terms')
+def terms():
+    t, lang = get_t()
+    content = render_template_string(TERMS_HTML, t=t)
+    return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=content)
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
