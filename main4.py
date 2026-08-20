@@ -170,7 +170,7 @@ TRANSLATIONS = {
         'step2_t': '2. ここに貼り付け', 'step2_d': '上にリンクを貼り付け。',
         'step3_t': '3. ダウンロード', 'step3_d': 'フォーマットを選んでダウンロード。',
         'faq_title': 'よくある質問',
-        'q1': '安全ですか？', 'a1': 'はい、TikTok公式サーバーから処理されます。',
+        'q1': '安全ですか？', 'a1': 'はい、TikTok公式サーバーから安全に処理されます。',
         'q2': 'ファイルはどこ？', 'a2': 'ダウンロードフォルダにあります。',
         'q3': '非公開動画は？', 'a3': '公開動画のみ対応。',
         'privacy_text': 'ダウンロードしたメディアや個人データは保存されません。',
@@ -187,7 +187,7 @@ def get_t():
     return TRANSLATIONS[lang], lang
 
 # ==========================================
-# 🎨 القالب الأساسي (تم تحسين الأداء وإزالة الخلل)
+# 🎨 القالب الأساسي (تمت إضافة حيلة لمعالجة أخطاء سفاري/آيفون)
 # ==========================================
 BASE_TEMPLATE = """
 <!DOCTYPE html>
@@ -198,7 +198,7 @@ BASE_TEMPLATE = """
     <title>{{ t['title'] }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
     
-    <!-- تم إضافة هذا السكربت في الأعلى لمنع وميض الشاشة (FOUC) -->
+    <!-- منع وميض الشاشة وقراءة الوضع مباشرة -->
     <script>
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -228,13 +228,8 @@ BASE_TEMPLATE = """
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         
-        /* 
-           إصلاح البطء: قمنا بتحديد العناصر التي تحتاج انتقال لوني فقط بدلاً من علامة النجمة (*)
-           هذا يجعل الوضع الليلي سلساً جداً ولا يستهلك معالج الهاتف 
-        */
-        body, .navbar, .search-container, .f-card, .how-box, details, footer, .page-box, .lang-dropdown, .opt-radio {
-            transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
-        }
+        /* إزالة انتقال الخلفيات عن العناصر الزجاجية لتجنب بطء الآيفون */
+        body { transition: background-color 0.3s ease, color 0.3s ease; }
         
         body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; position: relative; }
         
@@ -247,7 +242,7 @@ BASE_TEMPLATE = """
             100% { transform: translateY(-10vh) translateX(100px) rotate(360deg); opacity: 0; }
         }
 
-        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: var(--box-bg); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: relative; z-index: 10; }
+        .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: var(--box-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: relative; z-index: 10; }
         .logo { font-size: 24px; font-weight: 900; color: var(--text); text-decoration: none; }
         .logo span { color: var(--primary); }
         .nav-controls { display: flex; gap: 15px; align-items: center; }
@@ -256,7 +251,7 @@ BASE_TEMPLATE = """
         
         .lang-menu { position: relative; display: inline-block; }
         .lang-btn { background: var(--box-bg); border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text); transition: 0.3s; }
-        .lang-dropdown { display: none; position: absolute; top: 110%; right: 0; background: var(--box-bg); backdrop-filter: blur(15px); min-width: 140px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .lang-dropdown { display: none; position: absolute; top: 110%; right: 0; background: var(--box-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); min-width: 140px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         [dir="rtl"] .lang-dropdown { right: auto; left: 0; }
         .lang-menu:hover .lang-dropdown { display: block; }
         .lang-dropdown a { display: block; padding: 10px 15px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); font-weight: 600; transition: 0.3s; }
@@ -279,15 +274,14 @@ BASE_TEMPLATE = """
 <body>
     <div id="animated-bg"></div>
 
-    <nav class="navbar">
+    <nav class="navbar" id="glass-nav">
         <a href="/" class="logo">Aek<span>Downloader</span></a>
         
         <div class="nav-controls">
-            <!-- أيقونة الوضع تتحدث عبر الجافاسكربت -->
             <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌓</button>
             <div class="lang-menu">
                 <button class="lang-btn">🌐 <span>{{ t['lang_name'] }}</span></button>
-                <div class="lang-dropdown">
+                <div class="lang-dropdown" id="glass-lang">
                     <a href="/set_lang/en">🇬🇧 English</a>
                     <a href="/set_lang/ar">🇸🇦 العربية</a>
                     <a href="/set_lang/fr">🇫🇷 Français</a>
@@ -323,7 +317,6 @@ BASE_TEMPLATE = """
         const themeBtn = document.getElementById('themeBtn');
         const animBg = document.getElementById('animated-bg');
         
-        // التحقق من الوضع المحفوظ وإعداده بشكل صامت ومباشر
         const currentTheme = html.getAttribute('data-theme');
         updateUI(currentTheme);
         generateWorlds(currentTheme);
@@ -334,22 +327,35 @@ BASE_TEMPLATE = """
             localStorage.setItem('theme', newTheme);
             updateUI(newTheme);
             generateWorlds(newTheme);
+            
+            // 🚀 الحيلة العبقرية لإصلاح خطأ متصفح سفاري (Safari Repaint Bug)
+            // المتصفح يتكاسل في تغيير ألوان العناصر الزجاجية، فنحن نطفئ الزجاج ونشغله في جزء من الثانية لإجباره!
+            const glassElements = document.querySelectorAll('.navbar, .search-container, .opt-radio, .f-card, .how-box, details, .page-box, .badge-tt, .lang-dropdown');
+            glassElements.forEach(el => {
+                el.style.backdropFilter = 'none';
+                el.style.webkitBackdropFilter = 'none';
+            });
+            setTimeout(() => {
+                glassElements.forEach(el => {
+                    el.style.backdropFilter = '';
+                    el.style.webkitBackdropFilter = '';
+                });
+            }, 50);
         }
 
         function updateUI(theme) {
             themeBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
         }
 
-        // توليد الأنيميشن (بدون التسبب ببطء للمتصفح)
         function generateWorlds(theme) {
             animBg.innerHTML = ''; 
-            const count = window.innerWidth > 768 ? 15 : 8; // تقليل العناصر في الهواتف لزيادة السرعة
+            const count = window.innerWidth > 768 ? 15 : 8; 
             for(let i=0; i<count; i++) {
                 let el = document.createElement('div');
                 el.className = 'world-element';
                 let size = Math.random() * 80 + 20; 
                 let left = Math.random() * 100;
-                let duration = Math.random() * 10 + 15; // حركة أبطأ وأكثر سلاسة
+                let duration = Math.random() * 10 + 15; 
                 let delay = Math.random() * 10;
                 
                 el.style.width = size + 'px';
@@ -400,12 +406,12 @@ BASE_TEMPLATE = """
 HOME_HTML = """
 <style>
     .hero { text-align: center; padding: 60px 20px 40px; width: 100%; }
-    .badge-tt { background: rgba(37, 99, 235, 0.1); color: var(--primary); border: 1px solid var(--primary); padding: 5px 15px; border-radius: 20px; display: inline-block; font-weight: bold; margin-bottom: 15px; font-size: 14px; backdrop-filter: blur(5px); }
+    .badge-tt { background: rgba(37, 99, 235, 0.1); color: var(--primary); border: 1px solid var(--primary); padding: 5px 15px; border-radius: 20px; display: inline-block; font-weight: bold; margin-bottom: 15px; font-size: 14px; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
     [data-theme="dark"] .badge-tt { background: rgba(254, 44, 85, 0.1); }
     .hero h1 { font-size: 38px; font-weight: 900; margin-bottom: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     .hero p { opacity: 0.8; font-size: 18px; margin-bottom: 40px; }
     
-    .search-container { max-width: 700px; margin: 0 auto; background: var(--box-bg); padding: 10px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid var(--border); backdrop-filter: blur(15px); display: flex; gap: 8px; flex-wrap: wrap; }
+    .search-container { max-width: 700px; margin: 0 auto; background: var(--box-bg); padding: 10px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid var(--border); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); display: flex; gap: 8px; flex-wrap: wrap; }
     .search-container input { flex: 1; min-width: 250px; border: none; padding: 15px 20px; font-size: 16px; outline: none; background: transparent; color: var(--text); }
     .btn-paste { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0 15px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
     .btn-paste:hover { background: var(--bg); }
@@ -413,18 +419,18 @@ HOME_HTML = """
     .btn-dl:hover { transform: scale(1.05); opacity: 0.9; }
 
     .options-row { display: flex; justify-content: center; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
-    .opt-radio { display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: var(--box-bg); border: 1px solid var(--border); backdrop-filter: blur(10px); }
+    .opt-radio { display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: var(--box-bg); border: 1px solid var(--border); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
     .opt-radio input { accent-color: var(--primary); }
 
     .section-wrap { width: 100%; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; }
     .sec-title { font-size: 32px; margin-bottom: 40px; font-weight: 800; text-align: center; }
 
     .features-grid { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; max-width: 1000px; }
-    .f-card { background: var(--box-bg); backdrop-filter: blur(10px); padding: 30px; border-radius: 16px; width: 300px; text-align: center; border: 1px solid var(--border); }
+    .f-card { background: var(--box-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 30px; border-radius: 16px; width: 300px; text-align: center; border: 1px solid var(--border); }
     .f-card h3 { color: var(--primary); margin-bottom: 15px; font-size: 20px; }
     .f-card p { opacity: 0.8; font-size: 15px; line-height: 1.6; }
 
-    .how-box { background: rgba(30, 58, 138, 0.8); backdrop-filter: blur(15px); color: #fff; padding: 40px; border-radius: 24px; max-width: 800px; width: 100%; border: 1px solid rgba(255,255,255,0.1); }
+    .how-box { background: rgba(30, 58, 138, 0.8); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); color: #fff; padding: 40px; border-radius: 24px; max-width: 800px; width: 100%; border: 1px solid rgba(255,255,255,0.1); }
     [data-theme="dark"] .how-box { background: rgba(15, 23, 42, 0.8); border-color: rgba(254, 44, 85, 0.3); }
     .step { position: relative; padding: 0 40px; margin-bottom: 30px; }
     [dir="ltr"] .step { padding: 0 0 0 40px; }
@@ -435,7 +441,7 @@ HOME_HTML = """
     .step p { opacity: 0.8; font-size: 15px; }
 
     .faq-container { max-width: 800px; width: 100%; }
-    details { background: var(--box-bg); backdrop-filter: blur(10px); margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+    details { background: var(--box-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); margin-bottom: 15px; border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
     summary { padding: 20px; font-weight: 700; cursor: pointer; font-size: 16px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
     summary::-webkit-details-marker { display: none; }
     summary::after { content: "+"; color: var(--primary); font-size: 20px; }
@@ -497,7 +503,7 @@ HOME_HTML = """
 # ==========================================
 PAGE_STYLE = """
 <style>
-    .page-box { max-width: 800px; margin: 40px auto; padding: 40px; background: var(--box-bg); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid var(--border); backdrop-filter: blur(15px); text-align: center; }
+    .page-box { max-width: 800px; margin: 40px auto; padding: 40px; background: var(--box-bg); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid var(--border); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); text-align: center; }
     .page-box h2 { color: var(--primary); margin-bottom: 20px; font-size: 32px; }
     .page-box p { color: var(--text); opacity: 0.9; line-height: 1.8; font-size: 16px; margin-bottom: 20px; text-align: justify; }
     .contact-form { display: flex; flex-direction: column; gap: 15px; text-align: right; }
