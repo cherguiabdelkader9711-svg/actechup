@@ -7,7 +7,6 @@ app = Flask(__name__)
 # ==========================================
 # 1. FRONTEND (UI & UX)
 # ==========================================
-# (نفس كود HTML و CSS و JS السابق بدون تغيير)
 HTML_CODE = """
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -18,7 +17,6 @@ HTML_CODE = """
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* ... الأكواد السابقة للستايل ... */
         :root { --bg-primary: #0f172a; --bg-surface: #1e293b; --bg-hero: linear-gradient(135deg, #4c1d95 0%, #5b21b6 100%); --text-primary: #f8fafc; --text-secondary: #cbd5e1; --border-color: #334155; --accent-purple: #8b5cf6; --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; transition: 0.25s; }
         body { background-color: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
@@ -94,9 +92,9 @@ HTML_CODE = """
                 loader.style.display = 'none';
 
                 if (data.status === 'success') {
-                    document.getElementById('resCover').src = data.cover;
-                    document.getElementById('resAuthor').innerText = '@' + data.author;
-                    document.getElementById('resTitle').innerText = data.title;
+                    document.getElementById('resCover').src = data.cover || 'https://via.placeholder.com/100x130';
+                    document.getElementById('resAuthor').innerText = '@' + (data.author || 'user');
+                    document.getElementById('resTitle').innerText = data.title || 'TikTok Video';
                     
                     document.getElementById('btnNoWm').href = `/download_file?url=${encodeURIComponent(data.video_nowm)}&type=mp4`;
                     document.getElementById('btnWm').href = `/download_file?url=${encodeURIComponent(data.video_wm || data.video_nowm)}&type=mp4`;
@@ -119,17 +117,53 @@ HTML_CODE = """
 """
 
 # ==========================================
-# 2. BACKEND (Fixed Logic)
+# 2. BACKEND (Dual-Engine Logic)
 # ==========================================
 
-def fetch_from_api(url):
-    """
-    نمرر الرابط مباشرة للـ API الخارجي دون استخدام requests.head من سيرفرنا
-    لأن الـ API الخارجي قادر على معالجة روابط vm.tiktok.com بكفاءة.
-    """
+def fetch_from_lovetik(url):
+    """المحرك الأساسي: LoveTik (ممتاز مع الروابط المختصرة)"""
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        'Accept': '*/*',
+        'Origin': 'https://lovetik.com',
+        'Referer': 'https://lovetik.com/'
     }
+    try:
+        res = requests.post("https://lovetik.com/api/ajax/search", headers=headers, data={'query': url}, timeout=15)
+        if res.status_code == 200:
+            js = res.json()
+            if js.get('status') == 'ok':
+                links = js.get('links', [])
+                nowm, wm, audio = None, None, None
+                
+                for link in links:
+                    t = link.get('t', '').lower()
+                    if 'no watermark' in t or 'without watermark' in t:
+                        nowm = link.get('a')
+                    elif 'watermark' in t:
+                        wm = link.get('a')
+                    elif 'audio' in t or 'mp3' in t:
+                        audio = link.get('a')
+                
+                if not nowm and len(links) > 0:
+                    nowm = links[0].get('a')
+                    
+                return {
+                    'title': js.get('desc', 'TikTok Video'),
+                    'author': js.get('author', 'user'),
+                    'cover': js.get('cover'),
+                    'video_nowm': nowm,
+                    'video_wm': wm or nowm,
+                    'music': audio
+                }
+    except Exception as e:
+        print("LoveTik Error:", e)
+    return None
+
+def fetch_from_tikwm(url):
+    """المحرك الاحتياطي: TikWM"""
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
     try:
         api_url = f"https://www.tikwm.com/api/?url={url}"
         res = requests.get(api_url, headers=headers, timeout=12)
@@ -146,7 +180,7 @@ def fetch_from_api(url):
                     'music': d.get('music')
                 }
     except Exception as e:
-        print("API Error:", e)
+        print("TikWM Error:", e)
     return None
 
 @app.route('/')
@@ -161,18 +195,20 @@ def api_download():
     if not raw_url:
         return jsonify({'status': 'error', 'message': 'Please provide a URL'}), 400
 
-    # إرسال الرابط الخام مباشرة (سواء كان طويلاً أو قصيراً)
-    result = fetch_from_api(raw_url)
+    # 1. المحاولة الأولى باستخدام LoveTik
+    result = fetch_from_lovetik(raw_url)
 
+    # 2. إذا فشل LoveTik، ننتقل تلقائياً لـ TikWM
+    if not result or not result.get('video_nowm'):
+        result = fetch_from_tikwm(raw_url)
+
+    # النتيجة النهائية
     if result and result.get('video_nowm'):
-        return jsonify({
-            'status': 'success',
-            **result
-        })
+        return jsonify({'status': 'success', **result})
     else:
         return jsonify({
             'status': 'error',
-            'message': 'Failed to process this video. The link might be private, deleted, or invalid.'
+            'message': 'Failed to process this video. The link might be private or invalid.'
         }), 400
 
 @app.route('/download_file')
@@ -184,7 +220,6 @@ def download_file():
         return "Invalid File URL", 400
 
     try:
-        # إجبار التنزيل المباشر
         headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
         req = requests.get(file_url, headers=headers, stream=True, timeout=20)
         
