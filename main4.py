@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 # ==========================================
-# 🌐 قاموس الترجمات الشامل (تمت إضافة نصوص الصفحات بـ 7 لغات)
+# 🌐 قاموس الترجمات الشامل
 # ==========================================
 TRANSLATIONS = {
     'en': {
@@ -77,8 +77,8 @@ TRANSLATIONS = {
         'q1': 'Est-ce sûr?', 'a1': 'Oui, depuis les serveurs officiels de TikTok.',
         'q2': 'Où sont les fichiers?', 'a2': 'Dans votre dossier Téléchargements.',
         'q3': 'Vidéos privées?', 'a3': 'Non, uniquement les vidéos publiques.',
-        'privacy_text': 'Nous respectons votre vie privée. Aucun téléchargement n\'est stocké sur nos serveurs et nous ne conservons aucune donnée personnelle.',
-        'terms_text': 'En utilisant ce site, vous acceptez de l\'utiliser uniquement à des fins personnelles. Nous ne sommes pas responsables de l\'utilisation abusive du contenu.',
+        'privacy_text': 'Nous respectons votre vie privée. Aucun téléchargement n\'est stocké sur nos serveurs.',
+        'terms_text': 'En utilisant ce site, vous acceptez de l\'utiliser uniquement à des fins personnelles.',
         'c_name': 'Nom', 'c_email': 'Email', 'c_msg': 'Message', 'c_send': 'Envoyer',
         'footer_text': '© 2026 AekDownloader. Non affilié à TikTok.'
     },
@@ -101,8 +101,8 @@ TRANSLATIONS = {
         'q1': '¿Es seguro?', 'a1': 'Sí, procesado desde servidores oficiales de TikTok.',
         'q2': '¿Dónde se guardan?', 'a2': 'En tu carpeta de Descargas.',
         'q3': '¿Videos privados?', 'a3': 'No, solo contenido público.',
-        'privacy_text': 'Respetamos su privacidad. No almacenamos medios descargados ni datos personales en nuestros servidores.',
-        'terms_text': 'Al utilizar este sitio, acepta usarlo solo para fines personales. No somos responsables del mal uso del contenido.',
+        'privacy_text': 'Respetamos su privacidad. No almacenamos medios descargados ni datos personales.',
+        'terms_text': 'Al utilizar este sitio, acepta usarlo solo para fines personales.',
         'c_name': 'Nombre', 'c_email': 'Correo', 'c_msg': 'Mensaje', 'c_send': 'Enviar',
         'footer_text': '© 2026 AekDownloader. No afiliados a TikTok.'
     },
@@ -125,8 +125,8 @@ TRANSLATIONS = {
         'q1': 'Безопасно?', 'a1': 'Да, с официальных серверов TikTok.',
         'q2': 'Где файлы?', 'a2': 'В папке Загрузки.',
         'q3': 'Приватные видео?', 'a3': 'Только публичные.',
-        'privacy_text': 'Мы уважаем вашу конфиденциальность. Мы не храним загруженные медиафайлы или личные данные.',
-        'terms_text': 'Вы соглашаетесь использовать этот сайт только в личных целях. Мы не несем ответственности за неправомерное использование.',
+        'privacy_text': 'Мы уважаем вашу конфиденциальность. Мы не храним загруженные медиафайлы.',
+        'terms_text': 'Вы соглашаетесь использовать этот сайт только в личных целях.',
         'c_name': 'Имя', 'c_email': 'Email', 'c_msg': 'Сообщение', 'c_send': 'Отправить',
         'footer_text': '© 2026 AekDownloader. Не связано с TikTok.'
     },
@@ -149,14 +149,14 @@ TRANSLATIONS = {
         'q1': '安全吗？', 'a1': '安全，来自 TikTok 官方服务器。',
         'q2': '文件在哪？', 'a2': '在下载文件夹中。',
         'q3': '私人视频？', 'a3': '仅限公开视频。',
-        'privacy_text': '我们尊重您的隐私。我们不会在服务器上存储下载的媒体或个人数据。',
-        'terms_text': '使用本网站即表示您同意仅将其用于个人目的。我们对内容的滥用不承担任何责任。',
+        'privacy_text': '我们不存储下载的媒体或个人数据。',
+        'terms_text': '使用本网站即表示您同意仅将其用于个人目的。',
         'c_name': '姓名', 'c_email': '邮箱', 'c_msg': '留言', 'c_send': '发送',
         'footer_text': '© 2026 AekDownloader. 与 TikTok 无关。'
     },
     'ja': {
         'lang_name': '日本語', 'title': 'AekDownloader | TikTokダウンローダー',
-        'nav_home': 'ホーム', 'nav_contact': 'お問い合わせ', 'nav_privacy': 'プライバシーポリシー', 'nav_terms': '利用規約',
+        'nav_home': 'ホーム', 'nav_contact': 'お問い合わせ', 'nav_privacy': 'プライバシー', 'nav_terms': '利用規約',
         'tiktok_badge': '🎵 No.1 TikTok ダウンローダー',
         'hero_title': 'TikTok 動画ダウンローダー', 'hero_desc': '透かしなしのTikTok動画とMP3をダウンロード。',
         'placeholder': 'TikTokリンクを貼り付け...', 'paste': '貼り付け 📋', 'download': 'ダウンロード',
@@ -170,33 +170,40 @@ TRANSLATIONS = {
         'step2_t': '2. ここに貼り付け', 'step2_d': '上にリンクを貼り付け。',
         'step3_t': '3. ダウンロード', 'step3_d': 'フォーマットを選んでダウンロード。',
         'faq_title': 'よくある質問',
-        'q1': '安全ですか？', 'a1': 'はい、TikTok公式サーバーから安全に処理されます。',
+        'q1': '安全ですか？', 'a1': 'はい、TikTok公式サーバーから処理されます。',
         'q2': 'ファイルはどこ？', 'a2': 'ダウンロードフォルダにあります。',
         'q3': '非公開動画は？', 'a3': '公開動画のみ対応。',
-        'privacy_text': '当社はお客様のプライバシーを尊重します。ダウンロードしたメディアや個人データはサーバーに保存されません。',
-        'terms_text': '個人的な目的でのみ使用することに同意するものとします。コンテンツの悪用について当社は責任を負いません。',
+        'privacy_text': 'ダウンロードしたメディアや個人データは保存されません。',
+        'terms_text': '個人的な目的でのみ使用することに同意するものとします。',
         'c_name': '名前', 'c_email': 'メール', 'c_msg': 'メッセージ', 'c_send': '送信',
         'footer_text': '© 2026 AekDownloader. TikTokとは提携していません。'
     }
 }
 
 def get_t():
-    lang = session.get('lang', 'ar') # العربية الافتراضية
+    lang = session.get('lang', 'ar') 
     if lang not in TRANSLATIONS:
         lang = 'ar'
     return TRANSLATIONS[lang], lang
 
 # ==========================================
-# 🎨 القالب الأساسي (تم تحديث الفوتر)
+# 🎨 القالب الأساسي (تم تحسين الأداء وإزالة الخلل)
 # ==========================================
 BASE_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}" data-theme="light">
+<html lang="{{ lang }}" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ t['title'] }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- تم إضافة هذا السكربت في الأعلى لمنع وميض الشاشة (FOUC) -->
+    <script>
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+    
     <style>
         :root {
             --primary: #2563eb;
@@ -219,7 +226,16 @@ BASE_TEMPLATE = """
             --footer-text: #94a3b8;
         }
         
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: background-color 0.4s, color 0.4s; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        
+        /* 
+           إصلاح البطء: قمنا بتحديد العناصر التي تحتاج انتقال لوني فقط بدلاً من علامة النجمة (*)
+           هذا يجعل الوضع الليلي سلساً جداً ولا يستهلك معالج الهاتف 
+        */
+        body, .navbar, .search-container, .f-card, .how-box, details, footer, .page-box, .lang-dropdown, .opt-radio {
+            transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+        }
+        
         body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; position: relative; }
         
         #animated-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; pointer-events: none; }
@@ -236,20 +252,19 @@ BASE_TEMPLATE = """
         .logo span { color: var(--primary); }
         .nav-controls { display: flex; gap: 15px; align-items: center; }
         
-        .theme-toggle { background: transparent; border: 2px solid var(--primary); color: var(--text); padding: 5px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
+        .theme-toggle { background: transparent; border: 2px solid var(--primary); color: var(--text); padding: 5px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.3s; }
         
         .lang-menu { position: relative; display: inline-block; }
-        .lang-btn { background: var(--box-bg); border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text); }
+        .lang-btn { background: var(--box-bg); border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text); transition: 0.3s; }
         .lang-dropdown { display: none; position: absolute; top: 110%; right: 0; background: var(--box-bg); backdrop-filter: blur(15px); min-width: 140px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         [dir="rtl"] .lang-dropdown { right: auto; left: 0; }
         .lang-menu:hover .lang-dropdown { display: block; }
-        .lang-dropdown a { display: block; padding: 10px 15px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); font-weight: 600; }
+        .lang-dropdown a { display: block; padding: 10px 15px; color: var(--text); text-decoration: none; border-bottom: 1px solid var(--border); font-weight: 600; transition: 0.3s; }
         .lang-dropdown a:hover { background: var(--primary); color: #fff; }
 
         .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; z-index: 2; position: relative; }
         .alert-error { background: rgba(220, 38, 38, 0.8); color: #fff; padding: 15px; text-align: center; font-weight: bold; width: 100%; backdrop-filter: blur(5px); }
         
-        /* تحديث الفوتر */
         footer { background: var(--footer-bg); color: var(--footer-text); text-align: center; padding: 40px 20px; margin-top: auto; z-index: 2; position: relative; }
         .footer-links { display: flex; justify-content: center; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
         .footer-links a { color: var(--footer-text); text-decoration: none; font-weight: 600; font-size: 15px; transition: 0.3s; }
@@ -268,7 +283,8 @@ BASE_TEMPLATE = """
         <a href="/" class="logo">Aek<span>Downloader</span></a>
         
         <div class="nav-controls">
-            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+            <!-- أيقونة الوضع تتحدث عبر الجافاسكربت -->
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌓</button>
             <div class="lang-menu">
                 <button class="lang-btn">🌐 <span>{{ t['lang_name'] }}</span></button>
                 <div class="lang-dropdown">
@@ -307,30 +323,33 @@ BASE_TEMPLATE = """
         const themeBtn = document.getElementById('themeBtn');
         const animBg = document.getElementById('animated-bg');
         
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        setTheme(currentTheme);
+        // التحقق من الوضع المحفوظ وإعداده بشكل صامت ومباشر
+        const currentTheme = html.getAttribute('data-theme');
+        updateUI(currentTheme);
+        generateWorlds(currentTheme);
 
         function toggleTheme() {
             const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            setTheme(newTheme);
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateUI(newTheme);
+            generateWorlds(newTheme);
         }
 
-        function setTheme(theme) {
-            html.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
+        function updateUI(theme) {
             themeBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
-            generateWorlds(theme);
         }
 
+        // توليد الأنيميشن (بدون التسبب ببطء للمتصفح)
         function generateWorlds(theme) {
             animBg.innerHTML = ''; 
-            const count = 15;
+            const count = window.innerWidth > 768 ? 15 : 8; // تقليل العناصر في الهواتف لزيادة السرعة
             for(let i=0; i<count; i++) {
                 let el = document.createElement('div');
                 el.className = 'world-element';
                 let size = Math.random() * 80 + 20; 
                 let left = Math.random() * 100;
-                let duration = Math.random() * 10 + 10;
+                let duration = Math.random() * 10 + 15; // حركة أبطأ وأكثر سلاسة
                 let delay = Math.random() * 10;
                 
                 el.style.width = size + 'px';
@@ -340,10 +359,9 @@ BASE_TEMPLATE = """
                 el.style.animationDelay = delay + 's';
                 
                 if(theme === 'dark') {
-                    el.style.background = 'radial-gradient(circle, rgba(254, 44, 85, 0.8) 0%, rgba(0,0,0,0) 70%)';
-                    el.style.boxShadow = '0 0 20px rgba(254, 44, 85, 0.5)';
+                    el.style.background = 'radial-gradient(circle, rgba(254, 44, 85, 0.6) 0%, rgba(0,0,0,0) 70%)';
                 } else {
-                    el.style.background = 'rgba(255, 255, 255, 0.7)';
+                    el.style.background = 'rgba(255, 255, 255, 0.6)';
                     el.style.boxShadow = '0 10px 30px rgba(0,0,0,0.05)';
                 }
                 animBg.appendChild(el);
@@ -358,6 +376,7 @@ BASE_TEMPLATE = """
                 alert('Please paste manually.');
             }
         }
+        
         function startDownload() {
             const btn = document.getElementById('dlBtn');
             btn.innerHTML = '... ⏳';
@@ -388,7 +407,8 @@ HOME_HTML = """
     
     .search-container { max-width: 700px; margin: 0 auto; background: var(--box-bg); padding: 10px; border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid var(--border); backdrop-filter: blur(15px); display: flex; gap: 8px; flex-wrap: wrap; }
     .search-container input { flex: 1; min-width: 250px; border: none; padding: 15px 20px; font-size: 16px; outline: none; background: transparent; color: var(--text); }
-    .btn-paste { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    .btn-paste { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0 15px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    .btn-paste:hover { background: var(--bg); }
     .btn-dl { background: var(--primary); color: #fff; border: none; padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.3s; }
     .btn-dl:hover { transform: scale(1.05); opacity: 0.9; }
 
