@@ -7,159 +7,168 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 # ==========================================
-# 🌐 قاموس الترجمات الشامل (7 لغات عالمية)
+# 🌐 قاموس الترجمات (مخصص بالكامل لهوية تيك توك)
 # ==========================================
 TRANSLATIONS = {
     'en': {
         'lang_name': 'English', 'title': 'AekDownloader | TikTok Downloader',
         'nav_home': 'Home', 'nav_contact': 'Contact Us', 'nav_privacy': 'Privacy Policy', 'nav_terms': 'Terms of Use',
-        'hero_title': 'Universal Media Downloader', 'hero_desc': 'Download TikTok videos, stories, and audio quickly and safely.',
-        'placeholder': 'Paste your link here...', 'paste': 'Paste 📋', 'download': 'Download',
+        'tiktok_badge': '🎵 The #1 TikTok Downloader',
+        'hero_title': 'TikTok Video Downloader', 
+        'hero_desc': 'Download TikTok videos without watermark, stories, and MP3 audio instantly.',
+        'placeholder': 'Paste TikTok link here...', 'paste': 'Paste 📋', 'download': 'Download',
         'opt_video': 'Video (MP4)', 'opt_audio': 'Audio (MP3)', 'opt_story': 'Story', 'opt_photo': 'Photos',
         'feat_title': 'Why Choose Us?',
-        'f1_title': 'No Watermark', 'f1_desc': 'Download videos in crystal clear HD without any logos.',
-        'f2_title': 'Unlimited & Free', 'f2_desc': 'Save as many videos as you want without any restrictions.',
-        'f3_title': 'Multiple Formats', 'f3_desc': 'Extract high-quality MP3 audio or download image slideshows.',
-        'how_title': 'How to download?',
-        'step1_t': '1. Copy the Link', 'step1_d': 'Open the app, find the video, tap Share, and select "Copy Link".',
-        'step2_t': '2. Paste it here', 'step2_d': 'Come back to this page, paste the link in the input field above.',
+        'f1_title': 'No Watermark', 'f1_desc': 'Download TikTok videos in HD without any logos.',
+        'f2_title': 'Unlimited & Free', 'f2_desc': 'Save as many TikToks as you want without restrictions.',
+        'f3_title': 'Multiple Formats', 'f3_desc': 'Extract MP3 audio or download TikTok image slideshows.',
+        'how_title': 'How to download from TikTok?',
+        'step1_t': '1. Copy the Link', 'step1_d': 'Open the TikTok app, find the video, tap Share, and select "Copy Link".',
+        'step2_t': '2. Paste it here', 'step2_d': 'Come back to our site, paste the link in the input field above.',
         'step3_t': '3. Download', 'step3_d': 'Choose your format and click Download to save it.',
         'faq_title': 'FAQ',
-        'q1': 'Are the downloaded files safe?', 'a1': 'Absolutely. All files are processed securely from official servers.',
+        'q1': 'Are the downloaded files safe?', 'a1': 'Absolutely. All files are processed securely from official TikTok servers.',
         'q2': 'Where are files saved?', 'a2': 'They are saved in your device\'s "Downloads" folder.',
-        'q3': 'Can I download private videos?', 'a3': 'No, we can only process publicly available videos.',
-        'footer_text': '© 2026 AekDownloader. All rights reserved.'
+        'q3': 'Can I download private TikToks?', 'a3': 'No, we can only process publicly available videos.',
+        'footer_text': '© 2026 AekDownloader. We are not affiliated with TikTok.'
     },
     'ar': {
         'lang_name': 'العربية', 'title': 'AekDownloader | تحميل تيك توك',
         'nav_home': 'الرئيسية', 'nav_contact': 'اتصل بنا', 'nav_privacy': 'الخصوصية', 'nav_terms': 'شروط الاستخدام',
-        'hero_title': 'أداة التحميل الشاملة', 'hero_desc': 'قم بتحميل الفيديوهات، الستوريات، والصوتيات بأمان وسرعة.',
-        'placeholder': 'ألصق الرابط هنا...', 'paste': 'لصق 📋', 'download': 'تحميل',
-        'opt_video': 'فيديو (MP4)', 'opt_audio': 'صوت (MP3)', 'opt_story': 'ستوري', 'opt_photo': 'صور',
-        'feat_title': 'لماذا تختارنا؟',
-        'f1_title': 'بدون علامة مائية', 'f1_desc': 'احصل على الفيديوهات بجودة HD الأصلية خالية من الشعار.',
-        'f2_title': 'مجاني وغير محدود', 'f2_desc': 'حمل ما تشاء مجاناً بدون قيود يومية.',
-        'f3_title': 'صيغ متعددة', 'f3_desc': 'استخرج الصوتيات أو حمل الصور كفيديو مدمج.',
-        'how_title': 'كيفية التحميل؟',
-        'step1_t': '1. انسخ الرابط', 'step1_d': 'افتح التطبيق، اضغط مشاركة ثم "نسخ الرابط".',
+        'tiktok_badge': '🎵 المنصة الأولى لتحميل تيك توك',
+        'hero_title': 'أداة تحميل تيك توك الشاملة', 
+        'hero_desc': 'قم بتحميل فيديوهات تيك توك بدون علامة مائية، الستوريات، وصوتيات MP3 بضغطة زر.',
+        'placeholder': 'ألصق رابط تيك توك هنا...', 'paste': 'لصق 📋', 'download': 'تحميل',
+        'opt_video': 'فيديو (بدون علامة)', 'opt_audio': 'صوت (MP3)', 'opt_story': 'ستوري', 'opt_photo': 'صور',
+        'feat_title': 'لماذا تختار منصتنا؟',
+        'f1_title': 'بدون علامة مائية', 'f1_desc': 'احصل على فيديوهات تيك توك الأصلية خالية تماماً من الشعار.',
+        'f2_title': 'مجاني وغير محدود', 'f2_desc': 'حمل ما تشاء من مقاطع تيك توك مجاناً بدون قيود.',
+        'f3_title': 'صيغ متعددة', 'f3_desc': 'استخرج الصوتيات أو حمل صور تيك توك كفيديو مدمج.',
+        'how_title': 'كيفية التحميل من تيك توك؟',
+        'step1_t': '1. انسخ الرابط', 'step1_d': 'افتح تطبيق تيك توك، اضغط مشاركة ثم "نسخ الرابط".',
         'step2_t': '2. ألصق الرابط', 'step2_d': 'عد لموقعنا وألصق الرابط في المربع بالأعلى.',
         'step3_t': '3. اضغط تحميل', 'step3_d': 'اختر الصيغة المناسبة واضغط تحميل.',
         'faq_title': 'الأسئلة الشائعة',
-        'q1': 'هل الملفات آمنة؟', 'a1': 'نعم، يتم جلبها مباشرة من السيرفرات الرسمية بأمان تام.',
+        'q1': 'هل الملفات آمنة؟', 'a1': 'نعم، يتم جلبها مباشرة من سيرفرات تيك توك الرسمية بأمان تام.',
         'q2': 'أين أجد الفيديوهات؟', 'a2': 'في مجلد "التنزيلات" أو الاستوديو بهاتفك.',
-        'q3': 'هل يمكن تحميل مقطع خاص؟', 'a3': 'لا، ندعم فقط الحسابات العامة.',
-        'footer_text': '© 2026 AekDownloader. جميع الحقوق محفوظة.'
+        'q3': 'هل يمكن تحميل مقطع خاص؟', 'a3': 'لا، ندعم فقط الحسابات العامة المتاحة للجميع.',
+        'footer_text': '© 2026 AekDownloader. نحن غير تابعين لشركة TikTok.'
     },
     'fr': {
-        'lang_name': 'Français', 'title': 'AekDownloader | Téléchargeur',
+        'lang_name': 'Français', 'title': 'AekDownloader | Téléchargeur TikTok',
         'nav_home': 'Accueil', 'nav_contact': 'Contact', 'nav_privacy': 'Confidentialité', 'nav_terms': 'Conditions',
-        'hero_title': 'Téléchargeur Universel', 'hero_desc': 'Téléchargez vidéos, stories et audios rapidement.',
-        'placeholder': 'Collez le lien ici...', 'paste': 'Coller 📋', 'download': 'Télécharger',
+        'tiktok_badge': '🎵 Téléchargeur TikTok #1',
+        'hero_title': 'Téléchargeur Vidéo TikTok', 'hero_desc': 'Téléchargez des vidéos TikTok sans filigrane et MP3.',
+        'placeholder': 'Collez le lien TikTok ici...', 'paste': 'Coller 📋', 'download': 'Télécharger',
         'opt_video': 'Vidéo (MP4)', 'opt_audio': 'Audio (MP3)', 'opt_story': 'Story', 'opt_photo': 'Photos',
         'feat_title': 'Pourquoi nous choisir?',
-        'f1_title': 'Sans Filigrane', 'f1_desc': 'Vidéos HD sans logo.',
-        'f2_title': 'Illimité & Gratuit', 'f2_desc': 'Téléchargez sans restriction.',
-        'f3_title': 'Formats Multiples', 'f3_desc': 'Extraire MP3 ou télécharger des photos.',
-        'how_title': 'Comment télécharger?',
-        'step1_t': '1. Copier le lien', 'step1_d': 'Trouvez la vidéo, cliquez sur Partager et copier le lien.',
+        'f1_title': 'Sans Filigrane', 'f1_desc': 'Vidéos TikTok HD sans logo.',
+        'f2_title': 'Illimité & Gratuit', 'f2_desc': 'Téléchargez des TikToks sans restriction.',
+        'f3_title': 'Formats Multiples', 'f3_desc': 'Extraire MP3 ou télécharger des photos TikTok.',
+        'how_title': 'Comment télécharger sur TikTok?',
+        'step1_t': '1. Copier le lien', 'step1_d': 'Ouvrez TikTok, cliquez sur Partager et copier le lien.',
         'step2_t': '2. Coller ici', 'step2_d': 'Collez le lien dans le champ ci-dessus.',
         'step3_t': '3. Télécharger', 'step3_d': 'Choisissez le format et cliquez sur Télécharger.',
         'faq_title': 'FAQ',
-        'q1': 'Est-ce sûr?', 'a1': 'Oui, 100% sûr et sans logiciel tiers.',
+        'q1': 'Est-ce sûr?', 'a1': 'Oui, depuis les serveurs officiels de TikTok.',
         'q2': 'Où sont les fichiers?', 'a2': 'Dans votre dossier Téléchargements.',
         'q3': 'Vidéos privées?', 'a3': 'Non, uniquement les vidéos publiques.',
-        'footer_text': '© 2026 AekDownloader. Tous droits réservés.'
+        'footer_text': '© 2026 AekDownloader. Non affilié à TikTok.'
     },
     'es': {
-        'lang_name': 'Español', 'title': 'AekDownloader | Descargador',
+        'lang_name': 'Español', 'title': 'AekDownloader | Descargador de TikTok',
         'nav_home': 'Inicio', 'nav_contact': 'Contacto', 'nav_privacy': 'Privacidad', 'nav_terms': 'Términos',
-        'hero_title': 'Descargador Universal', 'hero_desc': 'Descarga videos, historias y audio rápido y seguro.',
-        'placeholder': 'Pega tu enlace aquí...', 'paste': 'Pegar 📋', 'download': 'Descargar',
+        'tiktok_badge': '🎵 Descargador de TikTok #1',
+        'hero_title': 'Descargador de Videos TikTok', 'hero_desc': 'Descarga videos de TikTok sin marca de agua.',
+        'placeholder': 'Pega el enlace de TikTok...', 'paste': 'Pegar 📋', 'download': 'Descargar',
         'opt_video': 'Video (MP4)', 'opt_audio': 'Audio (MP3)', 'opt_story': 'Historia', 'opt_photo': 'Fotos',
         'feat_title': '¿Por qué elegirnos?',
-        'f1_title': 'Sin Marca de Agua', 'f1_desc': 'Videos HD sin logos.',
-        'f2_title': 'Ilimitado y Gratis', 'f2_desc': 'Descarga sin restricciones.',
-        'f3_title': 'Múltiples Formatos', 'f3_desc': 'Extrae MP3 o descarga fotos.',
-        'how_title': '¿Cómo descargar?',
-        'step1_t': '1. Copiar Enlace', 'step1_d': 'Busca el video, toca compartir y copiar enlace.',
-        'step2_t': '2. Pegar Aquí', 'step2_d': 'Pega el enlace en la caja de arriba.',
-        'step3_t': '3. Descargar', 'step3_d': 'Elige tu formato y descarga.',
+        'f1_title': 'Sin Marca de Agua', 'f1_desc': 'Videos TikTok HD sin logos.',
+        'f2_title': 'Ilimitado y Gratis', 'f2_desc': 'Descarga TikToks sin restricciones.',
+        'f3_title': 'Múltiples Formatos', 'f3_desc': 'Extrae MP3 o fotos de TikTok.',
+        'how_title': '¿Cómo descargar de TikTok?',
+        'step1_t': '1. Copiar Enlace', 'step1_d': 'Abre TikTok, comparte y copia el enlace.',
+        'step2_t': '2. Pegar Aquí', 'step2_d': 'Pega el enlace arriba.',
+        'step3_t': '3. Descargar', 'step3_d': 'Elige formato y descarga.',
         'faq_title': 'Preguntas Frecuentes',
-        'q1': '¿Es seguro?', 'a1': 'Sí, 100% seguro desde servidores oficiales.',
+        'q1': '¿Es seguro?', 'a1': 'Sí, procesado desde servidores oficiales de TikTok.',
         'q2': '¿Dónde se guardan?', 'a2': 'En tu carpeta de Descargas.',
         'q3': '¿Videos privados?', 'a3': 'No, solo contenido público.',
-        'footer_text': '© 2026 AekDownloader. Todos los derechos reservados.'
+        'footer_text': '© 2026 AekDownloader. No afiliados a TikTok.'
     },
     'ru': {
-        'lang_name': 'Русский', 'title': 'AekDownloader | Скачать',
+        'lang_name': 'Русский', 'title': 'AekDownloader | TikTok Загрузчик',
         'nav_home': 'Главная', 'nav_contact': 'Контакты', 'nav_privacy': 'Конфиденциальность', 'nav_terms': 'Условия',
-        'hero_title': 'Универсальный Загрузчик', 'hero_desc': 'Скачивайте видео, истории и аудио быстро и безопасно.',
-        'placeholder': 'Вставьте ссылку здесь...', 'paste': 'Вставить 📋', 'download': 'Скачать',
+        'tiktok_badge': '🎵 Лучший Загрузчик TikTok',
+        'hero_title': 'Загрузчик Видео TikTok', 'hero_desc': 'Скачивайте видео TikTok без водяных знаков и MP3.',
+        'placeholder': 'Вставьте ссылку TikTok...', 'paste': 'Вставить 📋', 'download': 'Скачать',
         'opt_video': 'Видео (MP4)', 'opt_audio': 'Аудио (MP3)', 'opt_story': 'История', 'opt_photo': 'Фото',
         'feat_title': 'Почему мы?',
-        'f1_title': 'Без водяных знаков', 'f1_desc': 'HD видео без логотипов.',
-        'f2_title': 'Безлимитно и Бесплатно', 'f2_desc': 'Скачивайте без ограничений.',
-        'f3_title': 'Разные форматы', 'f3_desc': 'Извлекайте MP3 или фото.',
-        'how_title': 'Как скачать?',
-        'step1_t': '1. Скопировать', 'step1_d': 'Найдите видео, нажмите поделиться и скопировать ссылку.',
-        'step2_t': '2. Вставить', 'step2_d': 'Вставьте ссылку в поле выше.',
-        'step3_t': '3. Скачать', 'step3_d': 'Выберите формат и нажмите скачать.',
+        'f1_title': 'Без водяных знаков', 'f1_desc': 'TikTok HD без логотипов.',
+        'f2_title': 'Бесплатно', 'f2_desc': 'Качайте TikTok без ограничений.',
+        'f3_title': 'Разные форматы', 'f3_desc': 'MP3 и фото из TikTok.',
+        'how_title': 'Как скачать из TikTok?',
+        'step1_t': '1. Скопировать', 'step1_d': 'В TikTok нажмите поделиться и скопировать.',
+        'step2_t': '2. Вставить', 'step2_d': 'Вставьте ссылку выше.',
+        'step3_t': '3. Скачать', 'step3_d': 'Выберите формат и качайте.',
         'faq_title': 'Частые Вопросы',
-        'q1': 'Это безопасно?', 'a1': 'Да, 100% безопасно.',
+        'q1': 'Безопасно?', 'a1': 'Да, с официальных серверов TikTok.',
         'q2': 'Где файлы?', 'a2': 'В папке Загрузки.',
-        'q3': 'Приватные видео?', 'a3': 'Нет, только публичные.',
-        'footer_text': '© 2026 AekDownloader. Все права защищены.'
+        'q3': 'Приватные видео?', 'a3': 'Только публичные.',
+        'footer_text': '© 2026 AekDownloader. Не связано с TikTok.'
     },
     'zh': {
-        'lang_name': '中文', 'title': 'AekDownloader | 下载器',
-        'nav_home': '首页', 'nav_contact': '联系我们', 'nav_privacy': '隐私政策', 'nav_terms': '使用条款',
-        'hero_title': '通用媒体下载器', 'hero_desc': '快速安全地下载视频、故事和音频。',
-        'placeholder': '在此粘贴链接...', 'paste': '粘贴 📋', 'download': '下载',
+        'lang_name': '中文', 'title': 'AekDownloader | TikTok下载器',
+        'nav_home': '首页', 'nav_contact': '联系', 'nav_privacy': '隐私', 'nav_terms': '条款',
+        'tiktok_badge': '🎵 最佳 TikTok 下载器',
+        'hero_title': 'TikTok 视频下载器', 'hero_desc': '下载无水印 TikTok 视频和 MP3。',
+        'placeholder': '粘贴 TikTok 链接...', 'paste': '粘贴 📋', 'download': '下载',
         'opt_video': '视频 (MP4)', 'opt_audio': '音频 (MP3)', 'opt_story': '故事', 'opt_photo': '照片',
         'feat_title': '为什么选择我们？',
-        'f1_title': '无水印', 'f1_desc': '下载无标志的高清视频。',
-        'f2_title': '免费无限', 'f2_desc': '无限制地下载。',
-        'f3_title': '多种格式', 'f3_desc': '提取 MP3 或下载照片。',
-        'how_title': '如何下载？',
-        'step1_t': '1. 复制链接', 'step1_d': '找到视频，点击分享并复制链接。',
-        'step2_t': '2. 粘贴至此', 'step2_d': '在上方框内粘贴链接。',
-        'step3_t': '3. 下载', 'step3_d': '选择格式并点击下载。',
+        'f1_title': '无水印', 'f1_desc': '高清 TikTok 视频，无标志。',
+        'f2_title': '免费无限', 'f2_desc': '无限制下载 TikTok。',
+        'f3_title': '多种格式', 'f3_desc': '提取 MP3 或下载 TikTok 照片。',
+        'how_title': '如何从 TikTok 下载？',
+        'step1_t': '1. 复制链接', 'step1_d': '打开 TikTok，复制链接。',
+        'step2_t': '2. 粘贴至此', 'step2_d': '在上方粘贴链接。',
+        'step3_t': '3. 下载', 'step3_d': '选择格式并下载。',
         'faq_title': '常见问题',
-        'q1': '安全吗？', 'a1': '是的，100% 安全。',
-        'q2': '文件在哪？', 'a2': '在您的下载文件夹中。',
-        'q3': '私人视频？', 'a3': '不支持，仅限公开视频。',
-        'footer_text': '© 2026 AekDownloader. 保留所有权利。'
+        'q1': '安全吗？', 'a1': '安全，来自 TikTok 官方服务器。',
+        'q2': '文件在哪？', 'a2': '在下载文件夹中。',
+        'q3': '私人视频？', 'a3': '仅限公开视频。',
+        'footer_text': '© 2026 AekDownloader. 与 TikTok 无关。'
     },
     'ja': {
-        'lang_name': '日本語', 'title': 'AekDownloader | ダウンローダー',
+        'lang_name': '日本語', 'title': 'AekDownloader | TikTokダウンローダー',
         'nav_home': 'ホーム', 'nav_contact': 'お問い合わせ', 'nav_privacy': 'プライバシー', 'nav_terms': '利用規約',
-        'hero_title': 'ユニバーサルダウンローダー', 'hero_desc': '動画、ストーリー、音声を安全かつ迅速にダウンロード。',
-        'placeholder': 'ここにリンクを貼り付け...', 'paste': '貼り付け 📋', 'download': 'ダウンロード',
+        'tiktok_badge': '🎵 No.1 TikTok ダウンローダー',
+        'hero_title': 'TikTok 動画ダウンローダー', 'hero_desc': '透かしなしのTikTok動画とMP3をダウンロード。',
+        'placeholder': 'TikTokリンクを貼り付け...', 'paste': '貼り付け 📋', 'download': 'ダウンロード',
         'opt_video': '動画 (MP4)', 'opt_audio': '音声 (MP3)', 'opt_story': 'ストーリー', 'opt_photo': '写真',
         'feat_title': '選ばれる理由',
-        'f1_title': '透かしなし', 'f1_desc': 'ロゴなしのHD動画。',
-        'f2_title': '無制限＆無料', 'f2_desc': '制限なしでダウンロード。',
-        'f3_title': '複数フォーマット', 'f3_desc': 'MP3抽出や写真ダウンロード。',
-        'how_title': 'ダウンロード方法',
-        'step1_t': '1. リンクをコピー', 'step1_d': '動画を見つけ、共有からリンクをコピーします。',
-        'step2_t': '2. ここに貼り付け', 'step2_d': '上のフィールドにリンクを貼り付けます。',
+        'f1_title': '透かしなし', 'f1_desc': 'ロゴなしのTikTok HD動画。',
+        'f2_title': '無制限＆無料', 'f2_desc': 'TikTokを制限なしでダウンロード。',
+        'f3_title': '複数フォーマット', 'f3_desc': 'TikTokのMP3や写真を抽出。',
+        'how_title': 'TikTokからのダウンロード方法',
+        'step1_t': '1. リンクをコピー', 'step1_d': 'TikTokでリンクをコピーします。',
+        'step2_t': '2. ここに貼り付け', 'step2_d': '上にリンクを貼り付け。',
         'step3_t': '3. ダウンロード', 'step3_d': 'フォーマットを選んでダウンロード。',
         'faq_title': 'よくある質問',
-        'q1': '安全ですか？', 'a1': 'はい、100%安全です。',
-        'q2': 'ファイルはどこ？', 'a2': 'ダウンロードフォルダに保存されます。',
-        'q3': '非公開動画は？', 'a3': 'いいえ、公開動画のみです。',
-        'footer_text': '© 2026 AekDownloader. 無断複写・転載を禁じます。'
+        'q1': '安全ですか？', 'a1': 'はい、TikTok公式サーバーから安全に処理されます。',
+        'q2': 'ファイルはどこ？', 'a2': 'ダウンロードフォルダにあります。',
+        'q3': '非公開動画は？', 'a3': '公開動画のみ対応。',
+        'footer_text': '© 2026 AekDownloader. TikTokとは提携していません。'
     }
 }
 
 def get_t():
-    lang = session.get('lang', 'en') # الإنجليزية هي الأساسية
+    lang = session.get('lang', 'ar') # العربية الافتراضية
     if lang not in TRANSLATIONS:
-        lang = 'en'
+        lang = 'ar'
     return TRANSLATIONS[lang], lang
 
 # ==========================================
-# 🎨 القالب الأساسي (يحتوي على الأنيميشن والوضع الليلي)
+# 🎨 القالب الأساسي (الأنيميشن + الليلي والنهاري)
 # ==========================================
 BASE_TEMPLATE = """
 <!DOCTYPE html>
@@ -170,23 +179,22 @@ BASE_TEMPLATE = """
     <title>{{ t['title'] }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
     <style>
-        /* المتغيرات للأوضاع (ليلي/نهاري) */
         :root {
             --primary: #2563eb;
             --primary-hover: #1e40af;
             --bg: #f0f8ff;
             --text: #0f172a;
-            --box-bg: rgba(255, 255, 255, 0.85); /* شفافية لظهور الأنيميشن */
+            --box-bg: rgba(255, 255, 255, 0.85); 
             --border: rgba(226, 232, 240, 0.8);
             --footer-bg: rgba(15, 23, 42, 0.95);
             --footer-text: #cbd5e1;
         }
         [data-theme="dark"] {
-            --primary: #38bdf8;
-            --primary-hover: #0ea5e9;
+            --primary: #fe2c55; /* لون تيك توك مميز في الليلي */
+            --primary-hover: #e61e45;
             --bg: #090b14;
             --text: #f8fafc;
-            --box-bg: rgba(30, 41, 59, 0.75); /* شفافية زجاجية داكنة */
+            --box-bg: rgba(30, 41, 59, 0.75); 
             --border: rgba(51, 65, 85, 0.8);
             --footer-bg: rgba(2, 6, 23, 0.95);
             --footer-text: #94a3b8;
@@ -195,7 +203,6 @@ BASE_TEMPLATE = """
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; transition: background-color 0.4s, color 0.4s; }
         body { background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; position: relative; }
         
-        /* 🌌 خلفيات العوالم المتحركة (CSS Animations) */
         #animated-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; pointer-events: none; }
         .world-element { position: absolute; border-radius: 50%; animation: floatWorld linear infinite; }
         @keyframes floatWorld {
@@ -205,16 +212,13 @@ BASE_TEMPLATE = """
             100% { transform: translateY(-10vh) translateX(100px) rotate(360deg); opacity: 0; }
         }
 
-        /* Navbar */
         .navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 5%; background: var(--box-bg); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); position: relative; z-index: 10; }
         .logo { font-size: 24px; font-weight: 900; color: var(--text); text-decoration: none; }
         .logo span { color: var(--primary); }
         .nav-controls { display: flex; gap: 15px; align-items: center; }
         
-        /* زر الوضع الليلي والنهاري */
         .theme-toggle { background: transparent; border: 2px solid var(--primary); color: var(--text); padding: 5px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 14px; }
         
-        /* Language Dropdown */
         .lang-menu { position: relative; display: inline-block; }
         .lang-btn { background: var(--box-bg); border: 1px solid var(--border); padding: 8px 15px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text); }
         .lang-dropdown { display: none; position: absolute; top: 110%; right: 0; background: var(--box-bg); backdrop-filter: blur(15px); min-width: 140px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
@@ -236,7 +240,6 @@ BASE_TEMPLATE = """
     </style>
 </head>
 <body>
-    <!-- خلفية الأنيميشن -->
     <div id="animated-bg"></div>
 
     <nav class="navbar">
@@ -272,7 +275,6 @@ BASE_TEMPLATE = """
     </footer>
 
     <script>
-        // سكربت الوضع الليلي/النهاري والأنيميشن الخاص بكل وضع
         const html = document.documentElement;
         const themeBtn = document.getElementById('themeBtn');
         const animBg = document.getElementById('animated-bg');
@@ -292,15 +294,13 @@ BASE_TEMPLATE = """
             generateWorlds(theme);
         }
 
-        // توليد العوالم المتحركة برمجياً (غيوم لـ النهاري / نجوم لـ الليلي)
         function generateWorlds(theme) {
-            animBg.innerHTML = ''; // مسح القديم
+            animBg.innerHTML = ''; 
             const count = 15;
             for(let i=0; i<count; i++) {
                 let el = document.createElement('div');
                 el.className = 'world-element';
                 
-                // أحجام وأماكن عشوائية
                 let size = Math.random() * 80 + 20; 
                 let left = Math.random() * 100;
                 let duration = Math.random() * 10 + 10;
@@ -312,11 +312,12 @@ BASE_TEMPLATE = """
                 el.style.animationDuration = duration + 's';
                 el.style.animationDelay = delay + 's';
                 
-                // تغيير الألوان حسب الوضع
                 if(theme === 'dark') {
-                    el.style.background = 'radial-gradient(circle, rgba(56,189,248,0.8) 0%, rgba(0,0,0,0) 70%)';
-                    el.style.boxShadow = '0 0 20px rgba(56,189,248,0.5)';
+                    // نجوم متوهجة في الليلي
+                    el.style.background = 'radial-gradient(circle, rgba(254, 44, 85, 0.8) 0%, rgba(0,0,0,0) 70%)';
+                    el.style.boxShadow = '0 0 20px rgba(254, 44, 85, 0.5)';
                 } else {
+                    // غيوم ناعمة في النهاري
                     el.style.background = 'rgba(255, 255, 255, 0.7)';
                     el.style.boxShadow = '0 10px 30px rgba(0,0,0,0.05)';
                 }
@@ -325,7 +326,6 @@ BASE_TEMPLATE = """
             }
         }
 
-        // سكربتات التحميل واللصق
         async function pasteText() {
             try {
                 const text = await navigator.clipboard.readText();
@@ -352,11 +352,27 @@ BASE_TEMPLATE = """
 """
 
 # ==========================================
-# 📄 محتوى الصفحة الرئيسية (UI زجاجي فخم)
+# 📄 محتوى الواجهة (مع شارة تيك توك)
 # ==========================================
 HOME_HTML = """
 <style>
     .hero { text-align: center; padding: 60px 20px 40px; width: 100%; }
+    
+    /* الشارة التوضيحية لتيك توك */
+    .badge-tt {
+        background: rgba(37, 99, 235, 0.1); 
+        color: var(--primary); 
+        border: 1px solid var(--primary); 
+        padding: 5px 15px; 
+        border-radius: 20px; 
+        display: inline-block; 
+        font-weight: bold; 
+        margin-bottom: 15px; 
+        font-size: 14px; 
+        backdrop-filter: blur(5px);
+    }
+    [data-theme="dark"] .badge-tt { background: rgba(254, 44, 85, 0.1); }
+
     .hero h1 { font-size: 38px; font-weight: 900; margin-bottom: 15px; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
     .hero p { opacity: 0.8; font-size: 18px; margin-bottom: 40px; }
     
@@ -364,7 +380,7 @@ HOME_HTML = """
     .search-container input { flex: 1; min-width: 250px; border: none; padding: 15px 20px; font-size: 16px; outline: none; background: transparent; color: var(--text); }
     .btn-paste { background: transparent; color: var(--text); border: 1px solid var(--border); padding: 0 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
     .btn-dl { background: var(--primary); color: #fff; border: none; padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.3s; }
-    .btn-dl:hover { background: var(--primary-hover); transform: scale(1.05); }
+    .btn-dl:hover { transform: scale(1.05); opacity: 0.9; }
 
     .options-row { display: flex; justify-content: center; gap: 15px; margin-top: 25px; flex-wrap: wrap; }
     .opt-radio { display: flex; align-items: center; gap: 5px; cursor: pointer; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: var(--box-bg); border: 1px solid var(--border); backdrop-filter: blur(10px); }
@@ -379,10 +395,12 @@ HOME_HTML = """
     .f-card p { opacity: 0.8; font-size: 15px; line-height: 1.6; }
 
     .how-box { background: rgba(30, 58, 138, 0.8); backdrop-filter: blur(15px); color: #fff; padding: 40px; border-radius: 24px; max-width: 800px; width: 100%; border: 1px solid rgba(255,255,255,0.1); }
+    [data-theme="dark"] .how-box { background: rgba(15, 23, 42, 0.8); border-color: rgba(254, 44, 85, 0.3); }
     .step { position: relative; padding: 0 40px; margin-bottom: 30px; }
     [dir="ltr"] .step { padding: 0 0 0 40px; }
     .step::before { content: "✓"; position: absolute; right: 0; top: 0; color: #38bdf8; font-size: 24px; font-weight: bold; }
     [dir="ltr"] .step::before { right: auto; left: 0; }
+    [data-theme="dark"] .step::before { color: var(--primary); }
     .step h4 { font-size: 18px; margin-bottom: 5px; }
     .step p { opacity: 0.8; font-size: 15px; }
 
@@ -396,6 +414,7 @@ HOME_HTML = """
 </style>
 
 <div class="hero">
+    <div class="badge-tt">{{ t['tiktok_badge'] }}</div>
     <h1>{{ t['hero_title'] }}</h1>
     <p>{{ t['hero_desc'] }}</p>
     
@@ -444,7 +463,7 @@ HOME_HTML = """
 """
 
 # ==========================================
-# 🚦 مسارات الموقع (Routes) ومنطق التحميل
+# 🚦 مسارات الموقع والتحميل (Routes)
 # ==========================================
 
 @app.route('/set_lang/<lang>')
@@ -459,14 +478,12 @@ def home():
     content = render_template_string(HOME_HTML, t=t)
     return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=content)
 
-# منطق التحميل الفعلي (yt-dlp)
 @app.route('/download', methods=['POST'])
 def download_video():
     t, lang = get_t()
     url = request.form.get('url')
     format_type = request.form.get('format_type', 'video')
     
-    # تنظيف السيرفر
     for file in glob.glob("downloaded_media*"):
         try: os.remove(file)
         except: pass
@@ -490,13 +507,13 @@ def download_video():
         if downloaded_files:
             final_file = downloaded_files[0]
             ext = os.path.splitext(final_file)[1]
-            return send_file(final_file, as_attachment=True, download_name=f"AekDownloader_{format_type}{ext}")
+            return send_file(final_file, as_attachment=True, download_name=f"TikTok_{format_type}{ext}")
         else:
             raise Exception("File not found")
             
     except Exception as e:
         content = render_template_string(HOME_HTML, t=t)
-        error_msg = "❌ Error: Link is invalid or video is private." if lang == 'en' else "❌ عذراً، تأكد من صحة الرابط أو أن المقطع متاح للعامة."
+        error_msg = "❌ Error: Link is invalid or TikTok video is private." if lang == 'en' else "❌ عذراً، تأكد من صحة الرابط أو أن مقطع تيك توك متاح للعامة."
         return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=content, error=error_msg)
 
 if __name__ == '__main__':
