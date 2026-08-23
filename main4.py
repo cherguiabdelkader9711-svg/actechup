@@ -539,7 +539,8 @@ def terms():
 @app.route('/contact')
 def contact():
     t, lang = get_t()
-    content = f"""
+    
+    html_content = """
     <div class="page-box" style="max-width: 650px; text-align: left;">
         <div style="margin-bottom: 25px; text-align: left;">
             <p style="margin-bottom: 8px;">Do you have any questions, suggestions, or business inquiries?</p>
@@ -587,17 +588,21 @@ def contact():
         .formB { max-width: 100%; font-size: 1rem; margin: auto; text-align: left; }
         .formB form { display: flex; flex-direction: column; gap: 20px; }
         .formB .area { --paddingB: 14px; --paddingI: 16px; display: block; position: relative; text-align: left; }
-        .formB .area .n { display: block; position: absolute; top: var(--paddingB); left: 16px; padding-inline: 6px; font-size: 1rem; line-height: 1.5; opacity: .8; transition: top .3s, font-size .3s, background .3s; color: var(--text); }
+        .formB .area .n { display: block; position: absolute; top: var(--paddingB); left: 16px; padding-inline: 6px; font-size: 1rem; line-height: 1.5; opacity: .8; color: var(--text); }
         [dir="rtl"] .formB .area .n { left: auto; right: 16px; }
         .formB .area .sup { display: block; padding-inline: var(--paddingI); padding-block-start: 4px; font-size: small; line-height: 1.5; opacity: 0.7; }
-        .formB input:is([type=text], [type=email]), .formB textarea { display: block; width: 100%; padding: var(--paddingB) var(--paddingI); border: 1px solid var(--border); border-radius: 6px; color: var(--text); background-color: var(--box-bg); font: 1rem/1.5 Arial, sans-serif; transition: border-color .3s, box-shadow .3s; }
+        .formB input:is([type=text], [type=email]), .formB textarea { display: block; width: 100%; padding: var(--paddingB) var(--paddingI); border: 1px solid var(--border); border-radius: 6px; color: var(--text); background-color: var(--box-bg); font: 1rem/1.5 Arial, sans-serif; }
         .formB input:focus, .formB textarea:focus { border-color: var(--primary); outline: none; }
         .formB textarea { min-height: 120px; }
         .formB button[type=submit] { padding: 12px 20px; border: none; background: var(--primary); color: #fff; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background .3s; }
         .formB button[type=submit]:hover { background: var(--primary-hover); }
     </style>
     """
-    return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=content)
+    return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=html_content)
+
+            
+            
+            
 
 
 
