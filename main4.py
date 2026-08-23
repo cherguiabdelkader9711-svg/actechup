@@ -324,27 +324,18 @@ BASE_TEMPLATE = """
         updateUI(currentTheme);
         generateWorlds(currentTheme);
 
-        function toggleTheme() {
+       function toggleTheme() {
             const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateUI(newTheme);
             generateWorlds(newTheme);
             
-            // 🚀 الحيلة العبقرية لإصلاح خطأ متصفح سفاري (Safari Repaint Bug)
-            // المتصفح يتكاسل في تغيير ألوان العناصر الزجاجية، فنحن نطفئ الزجاج ونشغله في جزء من الثانية لإجباره!
-            const glassElements = document.querySelectorAll('.navbar, .search-container, .opt-radio, .f-card, .how-box, details, .page-box, .badge-tt, .lang-dropdown');
-            glassElements.forEach(el => {
-                el.style.backdropFilter = 'none';
-                el.style.webkitBackdropFilter = 'none';
-            });
-            setTimeout(() => {
-                glassElements.forEach(el => {
-                    el.style.backdropFilter = '';
-                    el.style.webkitBackdropFilter = '';
-                });
-            }, 50);
+            document.body.style.display = 'none';
+            document.body.offsetHeight; 
+            document.body.style.display = '';
         }
+
 
         function updateUI(theme) {
             themeBtn.innerHTML = theme === 'dark' ? '☀️' : '🌙';
