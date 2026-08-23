@@ -197,6 +197,9 @@ BASE_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ t['title'] }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800;900&display=swap" rel="stylesheet">
+
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8318835663506534"
+     crossorigin="anonymous"></script>
     
     <!-- منع وميض الشاشة وقراءة الوضع مباشرة -->
     <script>
