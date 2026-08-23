@@ -540,7 +540,7 @@ def terms():
 def contact():
     t, lang = get_t()
     
-    # مفاتيح الترجمة الخاصة بصفحة اتصل بنا لكل اللغات
+    # اختيار الترجمة حسب لغة المستخدم
     contact_texts = {
         'en': {
             'p1': 'Do you have any questions, suggestions, or business inquiries?',
@@ -597,16 +597,17 @@ def contact():
         }
     }
     
-    # اختيار لغة المستخدم أو الإنجليزية كافتراضي
     ct = contact_texts.get(lang, contact_texts['en'])
+    dir_val = 'rtl' if lang == 'ar' else 'ltr'
     
-    html_content = f"""
+    # استخدام النص العادي (بدون f-string) لحماية أكواد CSS و JS من الأخطاء
+    html_content = """
     <div class="page-box" style="max-width: 650px; text-align: left;">
-        <div style="margin-bottom: 25px; text-align: left;" dir="{'rtl' if lang == 'ar' else 'ltr'}">
-            <p style="margin-bottom: 8px;">{ct['p1']}</p>
-            <p style="margin-bottom: 8px;">{ct['p2']}</p>
-            <p style="margin-bottom: 8px;">{ct['p3']} <strong>aekchergui8@gmail.com</strong></p>
-            <p>{ct['p4']}</p>
+        <div style="margin-bottom: 25px; text-align: left;" dir="LANG_DIR">
+            <p style="margin-bottom: 8px;">P1_VAL</p>
+            <p style="margin-bottom: 8px;">P2_VAL</p>
+            <p style="margin-bottom: 8px;">P3_VAL <strong>aekchergui8@gmail.com</strong></p>
+            <p>P4_VAL</p>
         </div>
 
         <div class="formB">
@@ -614,129 +615,102 @@ def contact():
             
             <div class="area">
               <input type="text" name="name" required autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)">
-              <label class="n">{ct['name']}</label>
+              <label class="n">NAME_VAL</label>
             </div>
             
             <div class="area">
               <input type="email" name="email" required autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)">
-              <label class="n">{ct['email']}</label>
-              <span class="sup">{ct['email_sup']}</span>
+              <label class="n">EMAIL_VAL</label>
+              <span class="sup">ESUP_VAL</span>
             </div>
 
             <div class="area">
               <input type="text" name="mobile" autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)">
-              <label class="n">{ct['mobile']}</label>
-              <span class="sup">{ct['mobile_sup']}</span>
+              <label class="n">MOB_VAL</label>
+              <span class="sup">MSUP_VAL</span>
             </div>
 
             <div class="area">
               <textarea name="message" maxlength="3000" required autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)"></textarea>
-              <label class="n">{ct['msg']}</label>
-              <span class="sup">{ct['msg_sup']}</span>
+              <label class="n">MSG_VAL</label>
+              <span class="sup">MSGSUP_VAL</span>
             </div>
             
             <input name="_captcha" type="hidden" value="false" />
             <input name="_template" type="hidden" value="box" />
             <input name="_next" type="hidden" value="https://www.actechup.online" />
 
-            <button type="submit">{ct['send']}</button>
+            <button type="submit">SEND_VAL</button>
           </form>
         </div>
     </div>
 
     <style>
-        .formB {{ max-width: 100%; font-size: 1rem; margin: auto; text-align: left; }}
-        [dir="rtl"] .formB {{ text-align: right; }}
-        .formB form {{ display: flex; flex-direction: column; gap: 20px; }}
-        
-        .formB .area {{ position: relative; margin-top: 10px; }}
-        
-        .formB .area input, .formB .area textarea {{
-            width: 100%;
-            padding: 16px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            background-color: var(--box-bg);
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.3s;
-        }}
-        
-        .formB .area input:focus, .formB .area textarea:focus {{
-            border-color: var(--primary);
-        }}
-        
-        .formB .area .n {{
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            padding: 0 5px;
-            color: var(--text);
-            opacity: 0.7;
-            background: transparent;
-            pointer-events: none;
-            transition: 0.25s ease all;
-            font-size: 1rem;
+        .formB { max-width: 100%; font-size: 1rem; margin: auto; text-align: left; }
+        [dir="rtl"] .formB { text-align: right; }
+        .formB form { display: flex; flex-direction: column; gap: 20px; }
+        .formB .area { position: relative; margin-top: 10px; }
+        .formB .area input, .formB .area textarea {
+            width: 100%; padding: 16px; border: 1px solid var(--border);
+            border-radius: 8px; color: var(--text); background-color: var(--box-bg);
+            font-size: 1rem; outline: none; transition: border-color 0.3s;
         }
-        
-        [dir="rtl"] .formB .area .n {{
-            left: auto;
-            right: 16px;
-        }}
-
+        .formB .area input:focus, .formB .area textarea:focus { border-color: var(--primary); }
+        .formB .area .n {
+            position: absolute; top: 16px; left: 16px; padding: 0 5px;
+            color: var(--text); opacity: 0.7; background: transparent;
+            pointer-events: none; transition: 0.25s ease all; font-size: 1rem;
+        }
+        [dir="rtl"] .formB .area .n { left: auto; right: 16px; }
         .formB .area input:focus ~ .n,
         .formB .area input.has-value ~ .n,
         .formB .area textarea:focus ~ .n,
-        .formB .area textarea.has-value ~ .n {{
-            top: -11px;
-            left: 12px;
-            font-size: 0.85rem;
-            opacity: 1;
-            background: var(--box-bg);
-            color: var(--primary);
-            font-weight: bold;
-        }}
+        .formB .area textarea.has-value ~ .n {
+            top: -11px; left: 12px; font-size: 0.85rem; opacity: 1;
+            background: var(--box-bg); color: var(--primary); font-weight: bold;
+        }
         [dir="rtl"] .formB .area input:focus ~ .n,
         [dir="rtl"] .formB .area input.has-value ~ .n,
         [dir="rtl"] .formB .area textarea:focus ~ .n,
-        [dir="rtl"] .formB .area textarea.has-value ~ .n {{
-            left: auto;
-            right: 12px;
-        }}
-
-        .formB .area .sup {{ display: block; padding-inline: 4px; padding-block-start: 4px; font-size: small; opacity: 0.6; }}
-        .formB textarea {{ min-height: 120px; resize: vertical; }}
-        
-        .formB button[type=submit] {{
-            padding: 14px 20px;
-            border: none;
-            background: var(--primary);
-            color: #fff;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            font-size: 1rem;
-            width: 100%;
-        }}
-        .formB button[type=submit]:hover {{
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-        }}
+        [dir="rtl"] .formB .area textarea.has-value ~ .n { left: auto; right: 12px; }
+        .formB .area .sup { display: block; padding-inline: 4px; padding-block-start: 4px; font-size: small; opacity: 0.6; }
+        .formB textarea { min-height: 120px; resize: vertical; }
+        .formB button[type=submit] {
+            padding: 14px 20px; border: none; background: var(--primary);
+            color: #fff; font-weight: bold; border-radius: 8px; cursor: pointer;
+            transition: background 0.3s, transform 0.2s; font-size: 1rem; width: 100%;
+        }
+        .formB button[type=submit]:hover { background: var(--primary-hover); transform: translateY(-2px); }
     </style>
 
     <script>
-        function checkInput(element) {{
-            if (element.value.trim() !== "") {{
+        function checkInput(element) {
+            if (element.value.trim() !== "") {
                 element.classList.add('has-value');
-            }} else {{
+            } else {
                 element.classList.remove('has-value');
-            }}
-        }}
+            }
+        }
     </script>
     """
+    
+    # استبدال النصوص المؤقتة بالترجمة الحقيقية بأمان تام
+    html_content = html_content.replace("LANG_DIR", dir_val)\
+                               .replace("P1_VAL", ct['p1'])\
+                               .replace("P2_VAL", ct['p2'])\
+                               .replace("P3_VAL", ct['p3'])\
+                               .replace("P4_VAL", ct['p4'])\
+                               .replace("NAME_VAL", ct['name'])\
+                               .replace("EMAIL_VAL", ct['email'])\
+                               .replace("ESUP_VAL", ct['email_sup'])\
+                               .replace("MOB_VAL", ct['mobile'])\
+                               .replace("MSUP_VAL", ct['mobile_sup'])\
+                               .replace("MSG_VAL", ct['msg'])\
+                               .replace("MSGSUP_VAL", ct['msg_sup'])\
+                               .replace("SEND_VAL", ct['send'])
+
     return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=html_content)
+
 
 
 
