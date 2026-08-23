@@ -389,6 +389,27 @@ BASE_TEMPLATE = """
                 document.getElementById('linkInput').value = '';
             }, 8000);
         }
+
+                // التحقق مما إذا تم إرسال الرسالة بنجاح لإظهار التنبيه المنبثق
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                const toast = document.createElement('div');
+                toast.id = 'toast-msg';
+                
+                // تحديد النص حسب لغة الموقع الحالية
+                const isAr = document.documentElement.lang === 'ar';
+                toast.innerHTML = isAr ? '✅ تم إرسال رسالتك بنجاح! شكراً لتواصلك معنا.' : '✅ Your message has been sent successfully! Thank you.';
+                
+                document.body.appendChild(toast);
+                
+                // إزالة علامة النجاح من الرابط نظيفاً بعد ظهورها
+                setTimeout(() => {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }, 4000);
+            }
+        });
+
     </script>
 </body>
 </html>
@@ -441,6 +462,38 @@ HOME_HTML = """
     summary::after { content: "+"; color: var(--primary); font-size: 20px; }
     details[open] summary::after { content: "-"; }
     details p { padding: 0 20px 20px 20px; opacity: 0.8; line-height: 1.7; font-size: 15px; }
+
+            /* تصميم الرسالة المنبثقة الخفيفة واللطيفة */
+        #toast-msg {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--box-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            font-weight: bold;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideInUp 0.4s ease, fadeOut 0.4s ease 3.6s forwards;
+        }
+        [dir="rtl"] #toast-msg { right: auto; left: 30px; }
+        @keyframes slideInUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; visibility: hidden; }
+        }
+
+
+    
 </style>
 
 <div class="hero">
@@ -638,7 +691,8 @@ def contact():
             
             <input name="_captcha" type="hidden" value="false" />
             <input name="_template" type="hidden" value="box" />
-            <input name="_next" type="hidden" value="https://www.actechup.online" />
+            <input name="_next" type="hidden" value="https://www.actechup.online/?success=true" />
+
 
             <button type="submit">SEND_VAL</button>
           </form>
