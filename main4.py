@@ -773,7 +773,9 @@ def contact():
             
 @app.route('/robots.txt')
 def robots_txt():
-    return "User-agent: *\nAllow: /", 200, {'Content-Type': 'text/plain'}
+    content = "User-agent: *\nAllow: /\nSitemap: https://www.actechup.online/sitemap.xml"
+    return content, 200, {'Content-Type': 'text/plain'}
+
           
 @app.route('/sitemap.xml')
 def sitemap():
