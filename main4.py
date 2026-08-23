@@ -776,7 +776,6 @@ def robots_txt():
     content = "User-agent: *\nAllow: /\nSitemap: https://www.actechup.online/sitemap.xml"
     return content, 200, {'Content-Type': 'text/plain'}
 
-          
 @app.route('/sitemap.xml')
 def sitemap():
     xml_content = """<?xml version="1.0" encoding="UTF-8"?>
@@ -803,6 +802,7 @@ def sitemap():
   </url>
 </urlset>"""
     return xml_content, 200, {'Content-Type': 'application/xml; charset=utf-8'}
+
 
 
 
