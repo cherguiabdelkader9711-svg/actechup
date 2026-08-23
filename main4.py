@@ -771,7 +771,10 @@ def contact():
 
             
             
-            
+@app.route('/robots.txt')
+def robots_txt():
+    return "User-agent: *\nAllow: /", 200, {'Content-Type': 'text/plain'}
+          
 
 
 
