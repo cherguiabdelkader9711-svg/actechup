@@ -181,9 +181,9 @@ TRANSLATIONS = {
 }
 
 def get_t():
-    lang = session.get('lang', 'ar') 
+    lang = session.get('lang', 'en') 
     if lang not in TRANSLATIONS:
-        lang = 'ar'
+        lang = 'en'
     return TRANSLATIONS[lang], lang
 
 # ==========================================
