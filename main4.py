@@ -540,65 +540,144 @@ def terms():
 def contact():
     t, lang = get_t()
     
-    html_content = """
+    html_content = f"""
     <div class="page-box" style="max-width: 650px; text-align: left;">
-        <div style="margin-bottom: 25px; text-align: left;">
-            <p style="margin-bottom: 8px;">Do you have any questions, suggestions, or business inquiries?</p>
-            <p style="margin-bottom: 8px;">We’d love to hear from you!</p>
-            <p style="margin-bottom: 8px;">📧 You can email us directly at: <strong>aekchergui8@gmail.com</strong></p>
-            <p>We typically respond within 24–48 hours. Thank you for reaching out!</p>
+        <div style="margin-bottom: 25px; text-align: left;" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
+            <p style="margin-bottom: 8px;">{t['contact_p1']}</p>
+            <p style="margin-bottom: 8px;">{t['contact_p2']}</p>
+            <p style="margin-bottom: 8px;">{t['contact_p3']} <strong>aekchergui8@gmail.com</strong></p>
+            <p>{t['contact_p4']}</p>
         </div>
 
         <div class="formB">
           <form action="https://formsubmit.co/aekchergui8@gmail.com" method="post">
             
             <div class="area">
-              <label class="n">Name</label>
-              <input data-filled="false" name="name" required type="text" />
+              <input type="text" name="name" required autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)">
+              <label class="n">{t['lbl_name']}</label>
             </div>
             
             <div class="area">
-              <label class="n">Email</label>
-              <input data-filled="false" name="email" required type="email" />
-              <span class="sup">Valid email is required</span>
+              <input type="email" name="email" required autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)">
+              <label class="n">{t['lbl_email']}</label>
+              <span class="sup">{t['lbl_email_sup']}</span>
             </div>
 
             <div class="area">
-              <label class="n">Mobile Number</label>
-              <input data-filled="false" name="mobile" type="text" />
-              <span class="sup">This field is optional</span>
+              <input type="text" name="mobile" autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)">
+              <label class="n">{t['lbl_mobile']}</label>
+              <span class="sup">{t['lbl_mobile_sup']}</span>
             </div>
 
             <div class="area">
-              <label class="n">Message</label>
-              <textarea maxlength="3000" name="message" required></textarea>
-              <span class="sup">Must not contain more than 3000 characters</span>
+              <textarea name="message" maxlength="3000" required autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)"></textarea>
+              <label class="n">{t['lbl_msg']}</label>
+              <span class="sup">{t['lbl_msg_sup']}</span>
             </div>
             
             <input name="_captcha" type="hidden" value="false" />
             <input name="_template" type="hidden" value="box" />
             <input name="_next" type="hidden" value="https://www.actechup.online" />
 
-            <button type="submit">Send</button>
+            <button type="submit">{t['lbl_send']}</button>
           </form>
         </div>
     </div>
 
     <style>
         .formB { max-width: 100%; font-size: 1rem; margin: auto; text-align: left; }
+        [dir="rtl"] .formB { text-align: right; }
         .formB form { display: flex; flex-direction: column; gap: 20px; }
-        .formB .area { --paddingB: 14px; --paddingI: 16px; display: block; position: relative; text-align: left; }
-        .formB .area .n { display: block; position: absolute; top: var(--paddingB); left: 16px; padding-inline: 6px; font-size: 1rem; line-height: 1.5; opacity: .8; color: var(--text); }
-        [dir="rtl"] .formB .area .n { left: auto; right: 16px; }
-        .formB .area .sup { display: block; padding-inline: var(--paddingI); padding-block-start: 4px; font-size: small; line-height: 1.5; opacity: 0.7; }
-        .formB input:is([type=text], [type=email]), .formB textarea { display: block; width: 100%; padding: var(--paddingB) var(--paddingI); border: 1px solid var(--border); border-radius: 6px; color: var(--text); background-color: var(--box-bg); font: 1rem/1.5 Arial, sans-serif; }
-        .formB input:focus, .formB textarea:focus { border-color: var(--primary); outline: none; }
-        .formB textarea { min-height: 120px; }
-        .formB button[type=submit] { padding: 12px 20px; border: none; background: var(--primary); color: #fff; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background .3s; }
-        .formB button[type=submit]:hover { background: var(--primary-hover); }
+        
+        .formB .area { position: relative; margin-top: 10px; }
+        
+        .formB .area input, .formB .area textarea {
+            width: 100%;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            background-color: var(--box-bg);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .formB .area input:focus, .formB .area textarea:focus {
+            border-color: var(--primary);
+        }
+        
+        .formB .area .n {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            padding: 0 5px;
+            color: var(--text);
+            opacity: 0.7;
+            background: transparent;
+            pointer-events: none;
+            transition: 0.25s ease all;
+            font-size: 1rem;
+        }
+        
+        [dir="rtl"] .formB .area .n {
+            left: auto;
+            right: 16px;
+        }
+
+        .formB .area input:focus ~ .n,
+        .formB .area input.has-value ~ .n,
+        .formB .area textarea:focus ~ .n,
+        .formB .area textarea.has-value ~ .n {
+            top: -11px;
+            left: 12px;
+            font-size: 0.85rem;
+            opacity: 1;
+            background: var(--box-bg);
+            color: var(--primary);
+            font-weight: bold;
+        }
+        [dir="rtl"] .formB .area input:focus ~ .n,
+        [dir="rtl"] .formB .area input.has-value ~ .n,
+        [dir="rtl"] .formB .area textarea:focus ~ .n,
+        [dir="rtl"] .formB .area textarea.has-value ~ .n {
+            left: auto;
+            right: 12px;
+        }
+
+        .formB .area .sup { display: block; padding-inline: 4px; padding-block-start: 4px; font-size: small; opacity: 0.6; }
+        .formB textarea { min-height: 120px; resize: vertical; }
+        
+        .formB button[type=submit] {
+            padding: 14px 20px;
+            border: none;
+            background: var(--primary);
+            color: #fff;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+            font-size: 1rem;
+            width: 100%;
+        }
+        .formB button[type=submit]:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+        }
     </style>
+
+    <script>
+        function checkInput(element) {
+            if (element.value.trim() !== "") {
+                element.classList.add('has-value');
+            } else {
+                element.classList.remove('has-value');
+            }
+        }
+    </script>
     """
     return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=html_content)
+
 
             
             
