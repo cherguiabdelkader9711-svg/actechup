@@ -539,18 +539,66 @@ def terms():
 @app.route('/contact')
 def contact():
     t, lang = get_t()
-    content = PAGE_STYLE + f"""
-    <div class="page-box">
-        <h2>{t['nav_contact']}</h2>
-        <form class="contact-form" onsubmit="event.preventDefault(); alert('Sent!');">
-            <input type="text" placeholder="{t['c_name']}" required>
-            <input type="email" placeholder="{t['c_email']}" required>
-            <textarea rows="5" placeholder="{t['c_msg']}" required></textarea>
-            <button type="submit">{t['c_send']}</button>
-        </form>
+    content = f"""
+    <div class="page-box" style="max-width: 650px; text-align: left;">
+        <div style="margin-bottom: 25px; text-align: left;">
+            <p style="margin-bottom: 8px;">Do you have any questions, suggestions, or business inquiries?</p>
+            <p style="margin-bottom: 8px;">We’d love to hear from you!</p>
+            <p style="margin-bottom: 8px;">📧 You can email us directly at: <strong>aekchergui8@gmail.com</strong></p>
+            <p>We typically respond within 24–48 hours. Thank you for reaching out!</p>
+        </div>
+
+        <div class="formB">
+          <form action="https://formsubmit.co/aekchergui8@gmail.com" method="post">
+            
+            <div class="area">
+              <label class="n">Name</label>
+              <input data-filled="false" name="name" required type="text" />
+            </div>
+            
+            <div class="area">
+              <label class="n">Email</label>
+              <input data-filled="false" name="email" required type="email" />
+              <span class="sup">Valid email is required</span>
+            </div>
+
+            <div class="area">
+              <label class="n">Mobile Number</label>
+              <input data-filled="false" name="mobile" type="text" />
+              <span class="sup">This field is optional</span>
+            </div>
+
+            <div class="area">
+              <label class="n">Message</label>
+              <textarea maxlength="3000" name="message" required></textarea>
+              <span class="sup">Must not contain more than 3000 characters</span>
+            </div>
+            
+            <input name="_captcha" type="hidden" value="false" />
+            <input name="_template" type="hidden" value="box" />
+            <input name="_next" type="hidden" value="https://www.actechup.online" />
+
+            <button type="submit">Send</button>
+          </form>
+        </div>
     </div>
+
+    <style>
+        .formB { max-width: 100%; font-size: 1rem; margin: auto; text-align: left; }
+        .formB form { display: flex; flex-direction: column; gap: 20px; }
+        .formB .area { --paddingB: 14px; --paddingI: 16px; display: block; position: relative; text-align: left; }
+        .formB .area .n { display: block; position: absolute; top: var(--paddingB); left: 16px; padding-inline: 6px; font-size: 1rem; line-height: 1.5; opacity: .8; transition: top .3s, font-size .3s, background .3s; color: var(--text); }
+        [dir="rtl"] .formB .area .n { left: auto; right: 16px; }
+        .formB .area .sup { display: block; padding-inline: var(--paddingI); padding-block-start: 4px; font-size: small; line-height: 1.5; opacity: 0.7; }
+        .formB input:is([type=text], [type=email]), .formB textarea { display: block; width: 100%; padding: var(--paddingB) var(--paddingI); border: 1px solid var(--border); border-radius: 6px; color: var(--text); background-color: var(--box-bg); font: 1rem/1.5 Arial, sans-serif; transition: border-color .3s, box-shadow .3s; }
+        .formB input:focus, .formB textarea:focus { border-color: var(--primary); outline: none; }
+        .formB textarea { min-height: 120px; }
+        .formB button[type=submit] { padding: 12px 20px; border: none; background: var(--primary); color: #fff; font-weight: bold; border-radius: 6px; cursor: pointer; transition: background .3s; }
+        .formB button[type=submit]:hover { background: var(--primary-hover); }
+    </style>
     """
     return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=content)
+
 
 @app.route('/download', methods=['POST'])
 def download_video():
