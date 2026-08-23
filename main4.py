@@ -540,13 +540,73 @@ def terms():
 def contact():
     t, lang = get_t()
     
+    # مفاتيح الترجمة الخاصة بصفحة اتصل بنا لكل اللغات
+    contact_texts = {
+        'en': {
+            'p1': 'Do you have any questions, suggestions, or business inquiries?',
+            'p2': 'We’d love to hear from you!',
+            'p3': '📧 You can email us directly at:',
+            'p4': 'We typically respond within 24–48 hours. Thank you for reaching out!',
+            'name': 'Name', 'email': 'Email', 'email_sup': 'Valid email is required',
+            'mobile': 'Mobile Number', 'mobile_sup': 'This field is optional',
+            'msg': 'Message', 'msg_sup': 'Must not contain more than 3000 characters', 'send': 'Send'
+        },
+        'ar': {
+            'p1': 'هل لديك أي أسئلة أو اقتراحات أو استفسارات تجارية؟',
+            'p2': 'يسعدنا جداً سماع صوتك!',
+            'p3': '📧 يمكنك مراسلتنا مباشرة عبر البريد:',
+            'p4': 'عادة ما نرد خلال 24-48 ساعة. شكراً لتواصلك معنا!',
+            'name': 'الاسم', 'email': 'البريد الإلكتروني', 'email_sup': 'البريد الإلكتروني مطلوب وصحيح',
+            'mobile': 'رقم الهاتف', 'mobile_sup': 'هذا الحقل اختياري',
+            'msg': 'الرسالة', 'msg_sup': 'يجب ألا تتجاوز الرسالة 3000 حرف', 'send': 'إرسال'
+        },
+        'fr': {
+            'p1': 'Avez-vous des questions ou des suggestions ?', 'p2': 'Nous serions ravis de vous entendre !',
+            'p3': '📧 Écrivez-nous à :', 'p4': 'Réponse sous 24–48 heures.',
+            'name': 'Nom', 'email': 'Email', 'email_sup': 'Email valide requis',
+            'mobile': 'Numéro de mobile', 'mobile_sup': 'Optionnel',
+            'msg': 'Message', 'msg_sup': 'Max 3000 caractères', 'send': 'Envoyer'
+        },
+        'es': {
+            'p1': '¿Tiene alguna pregunta o sugerencia?', 'p2': '¡Nos encantaría saber de usted!',
+            'p3': '📧 Escríbanos a:', 'p4': 'Respondemos en 24–48 horas.',
+            'name': 'Nombre', 'email': 'Correo', 'email_sup': 'Correo válido requerido',
+            'mobile': 'Móvil', 'mobile_sup': 'Opcional',
+            'msg': 'Mensaje', 'msg_sup': 'Máximo 3000 caracteres', 'send': 'Enviar'
+        },
+        'ru': {
+            'p1': 'У вас есть вопросы или предложения?', 'p2': 'Мы будем рады услышать вас!',
+            'p3': '📧 Напишите нам:', 'p4': 'Мы отвечаем в течение 24–48 часов.',
+            'name': 'Имя', 'email': 'Email', 'email_sup': 'Требуется действительный email',
+            'mobile': 'Телефон', 'mobile_sup': 'Необязательно',
+            'msg': 'Сообщение', 'msg_sup': 'Максимум 3000 символов', 'send': 'Отправить'
+        },
+        'zh': {
+            'p1': '您有任何问题或建议吗？', 'p2': '我们很高兴听到您的声音！',
+            'p3': '📧 直接发邮件给我们：', 'p4': '我们通常会在 24-48 小时内回复。',
+            'name': '姓名', 'email': '邮箱', 'email_sup': '需要有效的邮箱',
+            'mobile': '手机号码', 'mobile_sup': '可选',
+            'msg': '留言', 'msg_sup': '最多3000个字符', 'send': '发送'
+        },
+        'ja': {
+            'p1': 'ご質問やご意見はありますか？', 'p2': 'お気軽にお問い合わせください！',
+            'p3': '📧 直接メールを送る：', 'p4': '通常24〜48時間以内に返信いたします。',
+            'name': 'お名前', 'email': 'メールアドレス', 'email_sup': '有効なメールが必要です',
+            'mobile': '電話番号', 'mobile_sup': '任意',
+            'msg': 'メッセージ', 'msg_sup': '3000文字以内', 'send': '送信'
+        }
+    }
+    
+    # اختيار لغة المستخدم أو الإنجليزية كافتراضي
+    ct = contact_texts.get(lang, contact_texts['en'])
+    
     html_content = f"""
     <div class="page-box" style="max-width: 650px; text-align: left;">
-        <div style="margin-bottom: 25px; text-align: left;" dir="{{ 'rtl' if lang == 'ar' else 'ltr' }}">
-            <p style="margin-bottom: 8px;">{t['contact_p1']}</p>
-            <p style="margin-bottom: 8px;">{t['contact_p2']}</p>
-            <p style="margin-bottom: 8px;">{t['contact_p3']} <strong>aekchergui8@gmail.com</strong></p>
-            <p>{t['contact_p4']}</p>
+        <div style="margin-bottom: 25px; text-align: left;" dir="{'rtl' if lang == 'ar' else 'ltr'}">
+            <p style="margin-bottom: 8px;">{ct['p1']}</p>
+            <p style="margin-bottom: 8px;">{ct['p2']}</p>
+            <p style="margin-bottom: 8px;">{ct['p3']} <strong>aekchergui8@gmail.com</strong></p>
+            <p>{ct['p4']}</p>
         </div>
 
         <div class="formB">
@@ -554,44 +614,44 @@ def contact():
             
             <div class="area">
               <input type="text" name="name" required autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)">
-              <label class="n">{t['lbl_name']}</label>
+              <label class="n">{ct['name']}</label>
             </div>
             
             <div class="area">
               <input type="email" name="email" required autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)">
-              <label class="n">{t['lbl_email']}</label>
-              <span class="sup">{t['lbl_email_sup']}</span>
+              <label class="n">{ct['email']}</label>
+              <span class="sup">{ct['email_sup']}</span>
             </div>
 
             <div class="area">
               <input type="text" name="mobile" autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)">
-              <label class="n">{t['lbl_mobile']}</label>
-              <span class="sup">{t['lbl_mobile_sup']}</span>
+              <label class="n">{ct['mobile']}</label>
+              <span class="sup">{ct['mobile_sup']}</span>
             </div>
 
             <div class="area">
               <textarea name="message" maxlength="3000" required autocomplete="off" oninput="checkInput(this)" onblur="checkInput(this)"></textarea>
-              <label class="n">{t['lbl_msg']}</label>
-              <span class="sup">{t['lbl_msg_sup']}</span>
+              <label class="n">{ct['msg']}</label>
+              <span class="sup">{ct['msg_sup']}</span>
             </div>
             
             <input name="_captcha" type="hidden" value="false" />
             <input name="_template" type="hidden" value="box" />
             <input name="_next" type="hidden" value="https://www.actechup.online" />
 
-            <button type="submit">{t['lbl_send']}</button>
+            <button type="submit">{ct['send']}</button>
           </form>
         </div>
     </div>
 
     <style>
-        .formB { max-width: 100%; font-size: 1rem; margin: auto; text-align: left; }
-        [dir="rtl"] .formB { text-align: right; }
-        .formB form { display: flex; flex-direction: column; gap: 20px; }
+        .formB {{ max-width: 100%; font-size: 1rem; margin: auto; text-align: left; }}
+        [dir="rtl"] .formB {{ text-align: right; }}
+        .formB form {{ display: flex; flex-direction: column; gap: 20px; }}
         
-        .formB .area { position: relative; margin-top: 10px; }
+        .formB .area {{ position: relative; margin-top: 10px; }}
         
-        .formB .area input, .formB .area textarea {
+        .formB .area input, .formB .area textarea {{
             width: 100%;
             padding: 16px;
             border: 1px solid var(--border);
@@ -601,13 +661,13 @@ def contact():
             font-size: 1rem;
             outline: none;
             transition: border-color 0.3s;
-        }
+        }}
         
-        .formB .area input:focus, .formB .area textarea:focus {
+        .formB .area input:focus, .formB .area textarea:focus {{
             border-color: var(--primary);
-        }
+        }}
         
-        .formB .area .n {
+        .formB .area .n {{
             position: absolute;
             top: 16px;
             left: 16px;
@@ -620,15 +680,15 @@ def contact():
             font-size: 1rem;
         }
         
-        [dir="rtl"] .formB .area .n {
+        [dir="rtl"] .formB .area .n {{
             left: auto;
             right: 16px;
-        }
+        }}
 
         .formB .area input:focus ~ .n,
         .formB .area input.has-value ~ .n,
         .formB .area textarea:focus ~ .n,
-        .formB .area textarea.has-value ~ .n {
+        .formB .area textarea.has-value ~ .n {{
             top: -11px;
             left: 12px;
             font-size: 0.85rem;
@@ -636,19 +696,19 @@ def contact():
             background: var(--box-bg);
             color: var(--primary);
             font-weight: bold;
-        }
+        }}
         [dir="rtl"] .formB .area input:focus ~ .n,
         [dir="rtl"] .formB .area input.has-value ~ .n,
         [dir="rtl"] .formB .area textarea:focus ~ .n,
-        [dir="rtl"] .formB .area textarea.has-value ~ .n {
+        [dir="rtl"] .formB .area textarea.has-value ~ .n {{
             left: auto;
             right: 12px;
-        }
+        }}
 
-        .formB .area .sup { display: block; padding-inline: 4px; padding-block-start: 4px; font-size: small; opacity: 0.6; }
-        .formB textarea { min-height: 120px; resize: vertical; }
+        .formB .area .sup {{ display: block; padding-inline: 4px; padding-block-start: 4px; font-size: small; opacity: 0.6; }}
+        .formB textarea {{ min-height: 120px; resize: vertical; }}
         
-        .formB button[type=submit] {
+        .formB button[type=submit] {{
             padding: 14px 20px;
             border: none;
             background: var(--primary);
@@ -659,24 +719,26 @@ def contact():
             transition: background 0.3s, transform 0.2s;
             font-size: 1rem;
             width: 100%;
-        }
-        .formB button[type=submit]:hover {
+        }}
+        .formB button[type=submit]:hover {{
             background: var(--primary-hover);
             transform: translateY(-2px);
-        }
+        }}
     </style>
 
     <script>
-        function checkInput(element) {
-            if (element.value.trim() !== "") {
+        function checkInput(element) {{
+            if (element.value.trim() !== "") {{
                 element.classList.add('has-value');
-            } else {
+            }} else {{
                 element.classList.remove('has-value');
-            }
-        }
+            }}
+        }}
     </script>
     """
     return render_template_string(BASE_TEMPLATE, t=t, lang=lang, content=html_content)
+
+
 
 
             
