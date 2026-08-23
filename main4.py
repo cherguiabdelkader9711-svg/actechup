@@ -800,7 +800,8 @@ def sitemap():
     <priority>0.5</priority>
   </url>
 </urlset>"""
-    return xml_content, 200, {'Content-Type': 'application/xml'}
+    return xml_content, 200, {'Content-Type': 'application/xml; charset=utf-8'}
+
 
 
 
