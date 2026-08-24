@@ -827,8 +827,9 @@ self.addEventListener('fetch', (e) => {
 @app.route('/manifest.json')
 def manifest():
     manifest_data = """{
-  "name": "AekDownloader",
+  "name": "AekDownloader - TikTok Video Downloader",
   "short_name": "AekDownloader",
+  "description": "Download TikTok videos, stories, and photos without watermark for free.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0f19",
@@ -837,11 +838,13 @@ def manifest():
     {
       "src": "https://www.actechup.online/static/icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }"""
     return manifest_data, 200, {'Content-Type': 'application/json'}
+
 
 
 
