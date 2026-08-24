@@ -836,7 +836,7 @@ def manifest():
   "theme_color": "#ff2a5f",
   "icons": [
     {
-      "src": "https://www.actechup.online/static/icon.png",
+      "src": "https://www.actechup.online/static/aek_logo_v2.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -844,6 +844,7 @@ def manifest():
   ]
 }"""
     return manifest_data, 200, {'Content-Type': 'application/json'}
+
 
 
 
