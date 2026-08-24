@@ -273,6 +273,11 @@ BASE_TEMPLATE = """
             .lang-btn span { display: none; }
         }
     </style>
+
+    <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ff2a5f">
+
+
 </head>
 <body>
     <div id="animated-bg"></div>
@@ -805,6 +810,38 @@ def sitemap():
   </url>
 </urlset>"""
     return xml_content, 200, {'Content-Type': 'application/xml; charset=utf-8'}
+
+@app.route('/sw.js')
+def service_worker():
+    sw_code = """
+self.addEventListener('install', (e) => {
+  console.log('Service Worker installed');
+});
+self.addEventListener('fetch', (e) => {
+  // Pass-through fetch
+});
+"""
+    return sw_code, 200, {'Content-Type': 'application/javascript'}
+
+
+@app.route('/manifest.json')
+def manifest():
+    manifest_data = """{
+  "name": "AekDownloader",
+  "short_name": "AekDownloader",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#ff2a5f",
+  "icons": [
+    {
+      "src": "https://www.actechup.online/static/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}"""
+    return manifest_data, 200, {'Content-Type': 'application/json'}
 
 
 
